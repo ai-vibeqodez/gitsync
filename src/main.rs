@@ -81,7 +81,10 @@ fn check_for_update() -> Result<()> {
         .find(r#""tag_name":"#)
         .and_then(|pos| {
             let after = &response[pos + r#""tag_name":"#.len()..];
-            after.trim_start().strip_prefix('"').and_then(|v| v.split('"').next())
+            after
+                .trim_start()
+                .strip_prefix('"')
+                .and_then(|v| v.split('"').next())
         })
         .unwrap_or(VERSION);
 
