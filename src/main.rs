@@ -61,9 +61,8 @@ fn check_for_update() -> Result<()> {
     // Determine platform
     let os = env::consts::OS;
     let arch = env::consts::ARCH;
-    let url = format!(
-        "https://api.github.com/repos/my-repositories/gitsync/releases/latest"
-    );
+    let url =
+        "https://api.github.com/repos/my-repositories/gitsync/releases/latest";
 
     // Fetch latest release info
     let output = Command::new("curl")
@@ -100,7 +99,10 @@ fn check_for_update() -> Result<()> {
         .map(|(_, rest)| rest.split('"').next().unwrap_or(""));
 
     if asset_url.is_empty() {
-        eprintln!("Could not find download URL for this platform ({}-{})", os, arch);
+        eprintln!(
+            "Could not find download URL for this platform ({}-{})",
+            os, arch
+        );
         std::process::exit(1);
     }
 
@@ -108,16 +110,13 @@ fn check_for_update() -> Result<()> {
 
     let current_exe = env::current_exe()
         .map_err(|e| anyhow::anyhow!("Failed to get current executable path: {e}"))?;
-    let current_exe_str = current_exe.to_str().ok_or_else(|| {
-        anyhow::anyhow!("Current executable path is not valid UTF-8")
-    })?;
+    let current_exe_str = current_exe
+        .to_str()
+        .ok_or_else(|| anyhow::anyhow!("Current executable path is not valid UTF-8"))?;
 
     // Download and replace
     let status = Command::new("curl")
-        .args(&[
-            "-L", "-o", current_exe_str,
-            asset_url,
-        ])
+        .args(&["-L", "-o", current_exe_str, asset_url])
         .status()
         .map_err(|e| anyhow::anyhow!("Failed to run curl download: {e}"))?;
 
@@ -146,12 +145,11 @@ async fn main() -> Result<()> {
             println!("gitsync v{VERSION}");
             Ok(())
         }
-        CliAction::Update => {
-            check_for_update()
-        }
+        CliAction::Update => check_for_update(),
         CliAction::Run => {
             let args: Vec<String> = std::env::args().collect();
-            let skip_host = args.iter()
+            let skip_host = args
+                .iter()
                 .any(|a| a.eq_ignore_ascii_case("--skip-host") || a.eq_ignore_ascii_case("-s"));
             run_app(skip_host).await
         }
