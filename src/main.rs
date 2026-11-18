@@ -65,7 +65,7 @@ fn check_for_update() -> Result<()> {
 
     // Fetch latest release info
     let output = Command::new("curl")
-        .args(&["-s", "-H", "Accept: application/vnd.github+json", &url])
+        .args(["-s", "-H", "Accept: application/vnd.github+json", &url])
         .output()
         .map_err(|e| anyhow::anyhow!("Failed to run curl: {e}"))?;
 
@@ -116,7 +116,7 @@ fn check_for_update() -> Result<()> {
 
     // Download and replace
     let status = Command::new("curl")
-        .args(&["-L", "-o", current_exe_str, asset_url])
+        .args(["-L", "-o", current_exe_str, asset_url])
         .status()
         .map_err(|e| anyhow::anyhow!("Failed to run curl download: {e}"))?;
 
@@ -128,7 +128,7 @@ fn check_for_update() -> Result<()> {
     // Make executable
     #[cfg(unix)]
     Command::new("chmod")
-        .args(&["+x", current_exe_str])
+        .args(["+x", current_exe_str])
         .status()
         .map_err(|e| anyhow::anyhow!("Failed to set executable permission: {e}"))?;
 
