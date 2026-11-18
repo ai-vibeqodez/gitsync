@@ -60,7 +60,7 @@ jobs:
 
   create-release-tag:
     needs: quality-and-tests
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.event.action == 'closed' && github.head_ref == 'main')
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true && github.base_ref == 'main')
     runs-on: ubuntu-latest
 
     steps:
