@@ -40,11 +40,13 @@ jobs:
         run: cargo llvm-cov --all-features --html
 
       - name: Preparation for HTML Deploy
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           # В llvm-cov отчеты по дефолту падают в target/llvm-cov/html
           touch target/llvm-cov/html/.nojekyll
 
       - name: Deploy Coverage Report to GitHub Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages
