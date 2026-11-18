@@ -65,7 +65,7 @@ fn check_for_update() -> Result<()> {
 
     // Fetch latest release info
     let output = Command::new("curl")
-        .args(["-s", "-H", "Accept: application/vnd.github+json", &url])
+        .args(["-s", "-H", "Accept: application/vnd.github+json", url])
         .output()
         .map_err(|e| anyhow::anyhow!("Failed to run curl: {e}"))?;
 
