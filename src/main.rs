@@ -95,7 +95,8 @@ fn check_for_update() -> Result<()> {
     // Find the asset for this platform
     let asset_url = response
         .split_once(r#""browser_download_url":""#)
-        .map(|(_, rest)| rest.split('"').next().unwrap_or(""));
+        .and_then(|(_, rest)| rest.split('"').next())
+        .unwrap_or("");
 
     if asset_url.is_empty() {
         eprintln!(
