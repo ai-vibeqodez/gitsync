@@ -94,4 +94,4 @@ jobs:
 
           # Create and push tag
           git tag "v${NEW_VERSION}"
-          git push origin "v${NEW_VERSION}" --force-with-lease
+          git push origin "v${NEW_VERSION}" --force
