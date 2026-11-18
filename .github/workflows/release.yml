@@ -71,6 +71,8 @@ jobs:
 
       - name: Determine tag name
         id: tag
+        env:
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           if [ "${{ github.event_name }}" = "push" ]; then
