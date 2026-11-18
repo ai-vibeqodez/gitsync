@@ -21,6 +21,7 @@ enum CliAction {
     Run,
     Version,
     Update,
+    Help,
 }
 
 fn parse_args() -> CliAction {
@@ -29,6 +30,7 @@ fn parse_args() -> CliAction {
         match arg.as_str() {
             "-v" | "--version" => return CliAction::Version,
             "-u" | "--update" => return CliAction::Update,
+            "-h" | "--help" => return CliAction::Help,
             _ => {}
         }
     }
@@ -49,6 +51,31 @@ async fn run_app(skip_host: bool) -> Result<()> {
 
     git_sync_service.run()?;
     Ok(())
+}
+
+/// Find the browser_download_url for an asset with the given name.
+fn find_asset_url<'a>(response: &'a str, asset_name: &str) -> Option<&'a str> {
+    // Find the assets array
+    let assets_start = response.find(r#""assets":["#)?;
+    let assets_section = &response[assets_start + r#""assets":["#.len()..];
+
+    // Find the matching asset by name
+    let search_pattern = format!(r#""name":"{}""#, asset_name);
+    let name_pos = assets_section.find(&search_pattern)?;
+
+    // Find the closing brace of this asset object (look for } that's not followed by ,)
+    let after_name = &assets_section[name_pos..];
+    let end_brace = after_name.find("}}")?;
+    let asset_obj = &after_name[..end_brace + 2];
+
+    // Find browser_download_url in this asset object
+    asset_obj.find(r#""browser_download_url":"#).and_then(|i| {
+        let url_start = &asset_obj[i + 23..];
+        url_start
+            .trim_start()
+            .strip_prefix('"')
+            .and_then(|s| s.split('"').next())
+    })
 }
 
 fn check_for_update() -> Result<()> {
@@ -78,8 +105,14 @@ fn check_for_update() -> Result<()> {
 
     // Parse version from JSON response
     let latest_version = response
-        .split_once(r#""tag_name":""#)
-        .and_then(|(_, rest)| rest.split('"').next())
+        .find(r#""tag_name":"#)
+        .and_then(|pos| {
+            let after = &response[pos + r#""tag_name":"#.len()..];
+            after
+                .trim_start()
+                .strip_prefix('"')
+                .and_then(|v| v.split('"').next())
+        })
         .unwrap_or(VERSION);
 
     let current_version = VERSION.trim_start_matches('v');
@@ -92,11 +125,15 @@ fn check_for_update() -> Result<()> {
 
     println!("New version available: v{latest_version} (current: v{VERSION})");
 
-    // Find the asset for this platform
-    let asset_url = response
-        .split_once(r#""browser_download_url":""#)
-        .and_then(|(_, rest)| rest.split('"').next())
-        .unwrap_or("");
+    // Determine expected asset name based on platform
+    let asset_name = if os == "windows" {
+        "gitsync.exe"
+    } else {
+        "gitsync"
+    };
+
+    // Find the asset URL by matching asset name
+    let asset_url = find_asset_url(&response, asset_name).unwrap_or("");
 
     if asset_url.is_empty() {
         eprintln!(
@@ -136,6 +173,22 @@ fn check_for_update() -> Result<()> {
     Ok(())
 }
 
+fn print_help() {
+    println!("gitsync v{VERSION}");
+    println!();
+    println!("USAGE:");
+    println!("    gitsync [OPTIONS]");
+    println!();
+    println!("OPTIONS:");
+    println!("    -h, --help          Print help");
+    println!("    -v, --version       Print version");
+    println!("    -u, --update        Check for and apply updates");
+    println!("    -s, --skip-host     Skip SSH known_hosts warm-up");
+    println!();
+    println!("COMMANDS:");
+    println!("    gitsync             Run git sync (default)");
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     let action = parse_args();
@@ -146,6 +199,10 @@ async fn main() -> Result<()> {
             Ok(())
         }
         CliAction::Update => check_for_update(),
+        CliAction::Help => {
+            print_help();
+            Ok(())
+        }
         CliAction::Run => {
             let args: Vec<String> = std::env::args().collect();
             let skip_host = args
