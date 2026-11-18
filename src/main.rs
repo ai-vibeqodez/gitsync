@@ -69,16 +69,13 @@ fn find_asset_url<'a>(response: &'a str, asset_name: &str) -> Option<&'a str> {
     let asset_obj = &after_name[..end_brace + 2];
 
     // Find browser_download_url in this asset object
-    asset_obj
-        .find(r#""browser_download_url":"#)
-        .map(|i| {
-            let url_start = &asset_obj[i + 23..];
-            url_start
-                .trim_start()
-                .strip_prefix('"')
-                .and_then(|s| s.split('"').next())
-        })
-        .flatten()
+    asset_obj.find(r#""browser_download_url":"#).and_then(|i| {
+        let url_start = &asset_obj[i + 23..];
+        url_start
+            .trim_start()
+            .strip_prefix('"')
+            .and_then(|s| s.split('"').next())
+    })
 }
 
 fn check_for_update() -> Result<()> {
