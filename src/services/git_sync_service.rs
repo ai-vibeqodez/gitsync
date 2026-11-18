@@ -84,7 +84,7 @@ impl<R: IProcessRunner> GitSyncService<R> {
         let remote_branch = Self::build_remote_branch(
             &self.logger_cfg.remote_branch_template,
             &source_remote_url,
-            &branch_name,
+            branch_name,
         )?;
 
         Ok(format!("{branch_name}:{remote_branch}"))
