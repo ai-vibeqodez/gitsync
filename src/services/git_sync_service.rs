@@ -79,7 +79,7 @@ impl<R: IProcessRunner> GitSyncService<R> {
         if !branch_output.success {
             return Err(anyhow!("Git branch error: {}", branch_output.stderr));
         }
-        let branch_name = branch_output.stdout;
+        let branch_name = branch_output.stdout.trim();
 
         let remote_branch = Self::build_remote_branch(
             &self.logger_cfg.remote_branch_template,
@@ -195,25 +195,29 @@ impl<R: IProcessRunner> GitSyncService<R> {
 
     /// Sanitize a git ref to ensure it's a valid branch/reference name.
     /// Git rejects refs starting with '.', containing '..', or ending with '.lock' or '@'.
+    /// Each path component is sanitized individually.
     fn sanitize_branch_name(name: &str) -> String {
-        let mut result = name.to_string();
+        name.split('/')
+            .map(|component| {
+                let mut result = component.to_string();
 
-        // Replace leading dots with underscore
-        while result.starts_with('.') {
-            result = format!("_{}", result);
-        }
+                // Replace leading dots with underscore
+                while result.starts_with('.') {
+                    result = format!("_{}", result);
+                }
 
-        // Replace '..' with '_' to avoid ambiguous refs
-        result = result.replace("..", "_");
+                // Replace '..' with '_' to avoid ambiguous refs
+                result = result.replace("..", "_");
 
-        // Replace any remaining problematic sequences
-        // Git refspec allows: alphanumeric, /, -, _, . (not at start)
-        // But to be safe, replace consecutive dots
-        while result.contains("..") {
-            result = result.replace("..", "_");
-        }
+                // Replace any remaining problematic sequences
+                while result.contains("..") {
+                    result = result.replace("..", "_");
+                }
 
-        result
+                result
+            })
+            .collect::<Vec<_>>()
+            .join("/")
     }
 }
 
