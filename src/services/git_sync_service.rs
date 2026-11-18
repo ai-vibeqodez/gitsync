@@ -184,7 +184,7 @@ impl<R: IProcessRunner> GitSyncService<R> {
         }
 
         let sanitized = Self::sanitize_branch_name(
-            template
+            &template
                 .replace("%owner%", owner)
                 .replace("%reponame%", reponame)
                 .replace("%branchname%", branch_name),
