@@ -193,28 +193,21 @@ impl<R: IProcessRunner> GitSyncService<R> {
         Ok(sanitized)
     }
 
-    /// Sanitize a git ref to ensure it's a valid branch/reference name.
-    /// Git rejects refs starting with '.', containing '..', or ending with '.lock' or '@'.
-    /// Each path component is sanitized individually.
+    /// Sanitize a git ref to ensure it only contains [a-zA-Z0-9_-].
+    /// Every character outside this set is replaced with '_'.
     fn sanitize_branch_name(name: &str) -> String {
         name.split('/')
             .map(|component| {
-                let mut result = component.to_string();
-
-                // Replace leading dots with underscore
-                while result.starts_with('.') {
-                    result = format!("_{}", result);
-                }
-
-                // Replace '..' with '_' to avoid ambiguous refs
-                result = result.replace("..", "_");
-
-                // Replace any remaining problematic sequences
-                while result.contains("..") {
-                    result = result.replace("..", "_");
-                }
-
-                result
+                component
+                    .chars()
+                    .map(|c| {
+                        if c.is_ascii_alphanumeric() || c == '-' || c == '_' {
+                            c
+                        } else {
+                            '_'
+                        }
+                    })
+                    .collect::<String>()
             })
             .collect::<Vec<_>>()
             .join("/")
@@ -343,7 +336,7 @@ mod tests {
     fn sanitize_branch_name_replaces_double_dots() {
         assert_eq!(
             GitSyncService::<FakeRunner>::sanitize_branch_name("foo..bar/baz"),
-            "foo_bar/baz"
+            "foo__bar/baz"
         );
     }
 
@@ -352,6 +345,14 @@ mod tests {
         assert_eq!(
             GitSyncService::<FakeRunner>::sanitize_branch_name("owner/repo/main"),
             "owner/repo/main"
+        );
+    }
+
+    #[test]
+    fn sanitize_branch_name_replaces_arbitrary_special_chars() {
+        assert_eq!(
+            GitSyncService::<FakeRunner>::sanitize_branch_name("feat/feat@2.0!"),
+            "feat/feat_2_0_"
         );
     }
 
