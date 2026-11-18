@@ -12,7 +12,7 @@ on:
 
 permissions:
   contents: write
-  check-run: read
+  checks: read
 
 jobs:
   build:
