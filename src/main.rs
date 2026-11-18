@@ -61,8 +61,7 @@ fn check_for_update() -> Result<()> {
     // Determine platform
     let os = env::consts::OS;
     let arch = env::consts::ARCH;
-    let url =
-        "https://api.github.com/repos/my-repositories/gitsync/releases/latest";
+    let url = "https://api.github.com/repos/my-repositories/gitsync/releases/latest";
 
     // Fetch latest release info
     let output = Command::new("curl")
