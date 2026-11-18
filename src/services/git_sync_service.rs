@@ -183,10 +183,12 @@ impl<R: IProcessRunner> GitSyncService<R> {
             return Err(anyhow!("Invalid origin url: {origin_url}"));
         }
 
-        let sanitized = Self::sanitize_branch_name(template
-            .replace("%owner%", owner)
-            .replace("%reponame%", reponame)
-            .replace("%branchname%", branch_name));
+        let sanitized = Self::sanitize_branch_name(
+            template
+                .replace("%owner%", owner)
+                .replace("%reponame%", reponame)
+                .replace("%branchname%", branch_name),
+        );
 
         Ok(sanitized)
     }
