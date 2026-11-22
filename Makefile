@@ -95,7 +95,7 @@ clean-%:
 
 # Clean all
 clean:
-	rm -rf build/Debug-* build/Release-*
+	rm -rf build/Debug-* build/Release-* build/_deps
 
 # Lint targets
 lint: ## Run clang-format and clang-tidy checks
