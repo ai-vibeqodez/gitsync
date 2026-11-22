@@ -138,13 +138,54 @@ jobs:
           sha256sum gitsync-linux-x64 gitsync-windows-x64.exe > SHA256SUMS.txt
           cat SHA256SUMS.txt
 
-      - name: Generate Release Notes (without defaults)
+      - name: Generate Release Notes
         id: changelog
         uses: ai-warevo/.github/.github/actions/changelog-release@main
         with:
           tag: ${{ github.ref_name }}
-          what-included: ''
-          quick-start: ''
+          what-included: |
+            - **Linux binary**: `gitsync-linux-x64` (Clang 18 + libc++)
+            - **Windows binary**: `gitsync-windows-x64.exe` (MSVC 2022+)
+            - **SHA256SUMS.txt**: Binary checksums for verification
+            - **Full C++23 rewrite** from original Rust implementation
+            - **CMake build system** with multi-platform presets
+            - **Comprehensive test suite** (11 unit tests with Catch2)
+            - **Static analysis** (clang-tidy) and formatting (clang-format)
+          quick-start: |
+            **Download and run:**
+            ```bash
+            # Linux
+            chmod +x gitsync-linux-x64
+            ./gitsync-linux-x64 --help
+
+            # Windows
+            .\gitsync-windows-x64.exe --help
+            ```
+
+            **Verify checksums:**
+            ```bash
+            sha256sum -c SHA256SUMS.txt
+            ```
+
+            **Quick config:**
+            Create `~/.gitsync/config.json`:
+            ```json
+            {
+              "LogLevel": "info",
+              "SourceRemoteName": "origin",
+              "RemoteBranchTemplate": "%owner%/%reponame%/%branchname%",
+              "RemoteUrls": {
+                "gitlab": "git@gitlab.com:user/mirror.git"
+              }
+            }
+            ```
+
+            Then run:
+            ```bash
+            gitsync
+            ```
+
+            **Full docs:** See [README.md](https://github.com/ai-warevo/gitsync#readme)
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
