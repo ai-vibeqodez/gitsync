@@ -1,5 +1,5 @@
 use anyhow::{Result, anyhow};
-use log::{debug, error, info};
+use log::{debug, error, info, warn};
 
 use crate::configuration::config_settings::ConfigSettings;
 use crate::services::process_runner::IProcessRunner;
@@ -38,7 +38,7 @@ impl<R: IProcessRunner> GitSyncService<R> {
         Ok(())
     }
 
-    fn push_all(&self, refspec: &str) -> Vec<(String, bool)> {
+    pub fn push_all(&self, refspec: &str) -> Vec<(String, bool)> {
         self.logger_cfg
             .remote_urls
             .keys()
@@ -49,12 +49,21 @@ impl<R: IProcessRunner> GitSyncService<R> {
             .collect()
     }
 
-    fn log_summary(&self, results: &[(String, bool)]) {
-        let success = results.iter().filter(|(_, ok)| *ok).count();
-        let error = results.len() - success;
+    pub fn compute_summary(&self, results: &[(String, bool)]) -> (u32, u32, u32) {
+        let total = results.len() as u32;
+        let success = results.iter().filter(|(_, ok)| *ok).count() as u32;
+        let error = total - success;
+        (success, error, total)
+    }
 
-        info!("Success total: {}/{}", success, results.len());
-        info!("Error total: {}/{}", error, results.len());
+    fn log_summary(&self, results: &[(String, bool)]) {
+        let (success, error, total) = self.compute_summary(results);
+
+        if error > 0 {
+            warn!("Sync complete: {}/{} succeeded, {}/{} errors", success, total, error, total);
+        } else {
+            info!("Sync complete: {}/{} succeeded", success, total);
+        }
     }
 
     fn build_refspec(&self) -> Result<String> {
