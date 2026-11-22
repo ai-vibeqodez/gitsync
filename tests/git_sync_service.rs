@@ -90,11 +90,11 @@ fn fail_push_responses() -> Vec<Result<&str, &str>> {
 /// Helper: HTTPS remote URL for origin.
 fn https_success_responses() -> Vec<Result<&str, &str>> {
     vec![
-        Ok("true"),                                                   // git rev-parse --is-inside-work-tree
-        Ok("https://github.com/owner/repo.git"),                      // git remote get-url origin
-        Ok("main"),                                                   // git branch --show-current
-        Ok("https://github.com/owner/repo.git"),                      // git remote get-url mirror1
-        Ok(""),                                                       // git push mirror1 ...
+        Ok("true"),                          // git rev-parse --is-inside-work-tree
+        Ok("https://github.com/owner/repo.git"), // git remote get-url origin
+        Ok("main"),                          // git branch --show-current
+        Ok("https://github.com/owner/repo.git"), // git remote get-url mirror1
+        Ok(""),                              // git push mirror1 ...
     ]
 }
 
