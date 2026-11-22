@@ -120,6 +120,41 @@ jobs:
       version: ${{ inputs.version || 'auto' }}
       artifact_name: gitsync-release-binaries
       artifact_directory: artifacts
+      what-included: |
+        - Multi-platform binaries: Linux (x64) and Windows (x64)
+        - Cross-platform Git repository synchronization utility
+        - Multi-layer configuration system (global → org → repo)
+        - SSH known_hosts automatic management
+        - Template-based branch naming
+      quick-start: |
+        **Download the binary for your platform:**
+        - Linux: `gitsync-linux-x64`
+        - Windows: `gitsync-windows-x64.exe`
+
+        **Quick setup:**
+        ```bash
+        # Make executable (Linux)
+        chmod +x gitsync-linux-x64
+        sudo mv gitsync-linux-x64 /usr/local/bin/gitsync
+
+        # Create config
+        mkdir -p ~/.gitsync
+        cat > ~/.gitsync/config.json <<EOF
+        {
+          "LogLevel": "info",
+          "SourceRemoteName": "origin",
+          "RemoteBranchTemplate": "%owner%/%reponame%/%branchname%",
+          "RemoteUrls": {
+            "backup": "git@github.com:username/backup.git"
+          }
+        }
+        EOF
+
+        # Run sync
+        gitsync
+        ```
+
+        See [README.md](https://github.com/ai-warevo/gitsync#readme) for full documentation.
     permissions:
       contents: write
       actions: write
