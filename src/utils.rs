@@ -51,6 +51,9 @@ mod tests {
 
     #[test]
     fn strips_v_prefix_from_fallback() {
-        assert_eq!(parse_latest_version(r#"{"tag_name": "v1.2.3"}"#, "v0.0.1"), "v1.2.3");
+        assert_eq!(
+            parse_latest_version(r#"{"tag_name": "v1.2.3"}"#, "v0.0.1"),
+            "v1.2.3"
+        );
     }
 }

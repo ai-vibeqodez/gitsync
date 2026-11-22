@@ -1,9 +1,9 @@
 use anyhow::Result;
 use gitsync::configuration::config_reader::ConfigReader;
-use gitsync::utils::parse_latest_version;
 use gitsync::services::git_sync_service::GitSyncService;
 use gitsync::services::known_hosts_service::KnownHostsService;
 use gitsync::services::process_runner::ProcessRunner;
+use gitsync::utils::parse_latest_version;
 use log::LevelFilter;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
