@@ -111,7 +111,10 @@ fn run_with_push_error_logs_warn() {
 
     let result = svc.run();
 
-    assert!(result.is_ok(), "run should not propagate individual push errors");
+    assert!(
+        result.is_ok(),
+        "run should not propagate individual push errors"
+    );
 }
 
 #[test]

@@ -60,7 +60,10 @@ impl<R: IProcessRunner> GitSyncService<R> {
         let (success, error, total) = self.compute_summary(results);
 
         if error > 0 {
-            warn!("Sync complete: {}/{} succeeded, {}/{} errors", success, total, error, total);
+            warn!(
+                "Sync complete: {}/{} succeeded, {}/{} errors",
+                success, total, error, total
+            );
         } else {
             info!("Sync complete: {}/{} succeeded", success, total);
         }
