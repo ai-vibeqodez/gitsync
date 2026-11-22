@@ -87,6 +87,17 @@ fn fail_push_responses() -> Vec<Result<&str, &str>> {
     ]
 }
 
+/// Helper: HTTPS remote URL for origin.
+fn https_success_responses() -> Vec<Result<&str, &str>> {
+    vec![
+        Ok("true"),                                                   // git rev-parse --is-inside-work-tree
+        Ok("https://github.com/owner/repo.git"),                      // git remote get-url origin
+        Ok("main"),                                                   // git branch --show-current
+        Ok("https://github.com/owner/repo.git"),                      // git remote get-url mirror1
+        Ok(""),                                                       // git push mirror1 ...
+    ]
+}
+
 #[test]
 fn run_success_path() {
     let runner = FakeRunner::new(success_responses());
@@ -157,4 +168,13 @@ fn compute_summary_multiple_remotes_mixed() {
     assert_eq!(total, 3);
     assert_eq!(success, 2);
     assert_eq!(error, 1);
+}
+
+#[test]
+fn run_with_https_origin_succeeds() {
+    let runner = FakeRunner::new(https_success_responses());
+    let svc = GitSyncService::new(runner, cfg());
+
+    let result = svc.run();
+    assert!(result.is_ok(), "run should succeed with HTTPS origin URL");
 }

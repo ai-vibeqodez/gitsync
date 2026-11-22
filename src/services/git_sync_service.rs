@@ -179,10 +179,16 @@ impl<R: IProcessRunner> GitSyncService<R> {
     }
 
     fn build_remote_branch(template: &str, origin_url: &str, branch_name: &str) -> Result<String> {
-        let repo_part = if let Some(pos) = origin_url.find(':') {
-            &origin_url[pos + 1..]
+        // Strip scheme (https:// or http://) if present
+        let without_scheme = origin_url
+            .strip_prefix("https://")
+            .or_else(|| origin_url.strip_prefix("http://"))
+            .unwrap_or(origin_url);
+
+        let repo_part = if let Some(pos) = without_scheme.find(':') {
+            &without_scheme[pos + 1..]
         } else {
-            origin_url
+            without_scheme
         };
 
         let repo_part = repo_part.strip_suffix(".git").unwrap_or(repo_part);
@@ -379,6 +385,30 @@ mod tests {
 
         // .github should become _github
         assert_eq!(out, "ai-warevo/_github/main");
+    }
+
+    #[test]
+    fn build_remote_branch_handles_https_url() {
+        let out = GitSyncService::<FakeRunner>::build_remote_branch(
+            "%owner%/%reponame%/%branchname%",
+            "https://github.com/ai-warevo/gitsync.git",
+            "main",
+        )
+        .unwrap();
+
+        assert_eq!(out, "ai-warevo/gitsync/main");
+    }
+
+    #[test]
+    fn build_remote_branch_handles_http_url() {
+        let out = GitSyncService::<FakeRunner>::build_remote_branch(
+            "%owner%/%reponame%/%branchname%",
+            "http://github.com/ai-warevo/gitsync.git",
+            "main",
+        )
+        .unwrap();
+
+        assert_eq!(out, "ai-warevo/gitsync/main");
     }
 
     #[test]
