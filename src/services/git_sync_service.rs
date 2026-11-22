@@ -189,8 +189,9 @@ impl<R: IProcessRunner> GitSyncService<R> {
             // SSH format: git@github.com:owner/repo.git
             &without_scheme[pos + 1..]
         } else {
-            // HTTPS format: github.com/owner/repo.git — strip hostname
-            &without_scheme[without_scheme.find('/').unwrap_or(0)..]
+            // HTTPS format: github.com/owner/repo.git — strip hostname + leading /
+            let slash = without_scheme.find('/').unwrap_or(0);
+            &without_scheme[slash + 1..]
         };
 
         let repo_part = repo_part.strip_suffix(".git").unwrap_or(repo_part);
