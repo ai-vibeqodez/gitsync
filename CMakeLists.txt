@@ -55,7 +55,8 @@ aw_add_library(TARGET gitsync_core TYPE STATIC ALIAS aw::gitsync_core
 # Windows version resource and icon (Windows only)
 if(WIN32)
     include(Windows/WinVersion)
-    aw_win_version(GITSYNC_WIN_RESOURCES
+    aw_win_version(
+        OUTVAR GITSYNC_WIN_RESOURCES
         NAME "GitSync"
         VERSION_MAJOR ${PROJECT_VERSION_MAJOR}
         VERSION_MINOR ${PROJECT_VERSION_MINOR}
