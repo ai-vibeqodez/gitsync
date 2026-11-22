@@ -1,5 +1,6 @@
 use anyhow::Result;
 use gitsync::configuration::config_reader::ConfigReader;
+use gitsync::utils::parse_latest_version;
 use gitsync::services::git_sync_service::GitSyncService;
 use gitsync::services::known_hosts_service::KnownHostsService;
 use gitsync::services::process_runner::ProcessRunner;
@@ -104,17 +105,7 @@ fn check_for_update() -> Result<()> {
     let response = String::from_utf8_lossy(&output.stdout);
 
     // Parse version from JSON response
-    let latest_version = response
-        .find(r#""tag_name""#)
-        .and_then(|pos| {
-            let after = &response[pos + r#""tag_name""#.len()..];
-            after
-                .trim_start()
-                .strip_prefix(':')
-                .and_then(|s| s.trim_start().strip_prefix('"'))
-                .and_then(|v| v.split('"').next())
-        })
-        .unwrap_or(VERSION);
+    let latest_version = parse_latest_version(&response, VERSION);
 
     let current_version = VERSION.trim_start_matches('v');
     let latest_version = latest_version.trim_start_matches('v');
