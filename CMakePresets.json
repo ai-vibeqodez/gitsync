@@ -8,41 +8,110 @@
   "configurePresets": [
     {
       "name": "dev",
-      "hidden": true,
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/${presetName}",
+      "displayName": "Dev (Debug)",
+      "inherits": "debug-gcc"
+    },
+    {
+      "name": "debug",
+      "displayName": "Debug (default)",
+      "inherits": "debug-gcc"
+    },
+    {
+      "name": "release",
+      "displayName": "Release (default)",
+      "inherits": "release-gcc"
+    },
+    {
+      "name": "debug-gcc",
+      "displayName": "Debug - GCC",
+      "binaryDir": "${sourceDir}/build/Debug-gcc",
       "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_C_COMPILER": "gcc",
+        "CMAKE_CXX_COMPILER": "g++",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "GITSYNC_BUILD_TESTS": "ON"
       }
     },
     {
-      "name": "clang18-libcxx",
-      "inherits": "dev",
-      "displayName": "Clang 18 + libc++",
-      "cacheVariables": {
-        "CMAKE_CXX_COMPILER": "clang++-18",
-        "CMAKE_CXX_FLAGS": "-stdlib=libc++ -std=c++23"
-      }
-    },
-    {
-      "name": "release",
-      "inherits": "clang18-libcxx",
-      "displayName": "Release build",
+      "name": "release-gcc",
+      "displayName": "Release - GCC",
+      "binaryDir": "${sourceDir}/build/Release-gcc",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_C_COMPILER": "gcc",
+        "CMAKE_CXX_COMPILER": "g++",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "GITSYNC_BUILD_TESTS": "ON",
         "GITSYNC_WARNINGS_AS_ERRORS": "ON"
       }
     },
     {
-      "name": "msvc",
-      "displayName": "MSVC (Windows)",
-      "generator": "Visual Studio 17 2022",
-      "binaryDir": "${sourceDir}/build/${presetName}",
+      "name": "debug-clang",
+      "displayName": "Debug - Clang",
+      "binaryDir": "${sourceDir}/build/Debug-clang",
       "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "GITSYNC_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "release-clang",
+      "displayName": "Release - Clang",
+      "binaryDir": "${sourceDir}/build/Release-clang",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "GITSYNC_BUILD_TESTS": "ON",
-        "CMAKE_CXX_FLAGS": "/std:c++latest /EHsc"
+        "GITSYNC_WARNINGS_AS_ERRORS": "ON"
+      }
+    },
+    {
+      "name": "debug-clang-libcxx",
+      "displayName": "Debug - Clang + libc++",
+      "binaryDir": "${sourceDir}/build/Debug-clang-libcxx",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "CMAKE_CXX_FLAGS": "-stdlib=libc++",
+        "CMAKE_EXE_LINKER_FLAGS": "-stdlib=libc++",
+        "CMAKE_SHARED_LINKER_FLAGS": "-stdlib=libc++",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "GITSYNC_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "release-clang-libcxx",
+      "displayName": "Release - Clang + libc++",
+      "binaryDir": "${sourceDir}/build/Release-clang-libcxx",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "CMAKE_CXX_FLAGS": "-stdlib=libc++",
+        "CMAKE_EXE_LINKER_FLAGS": "-stdlib=libc++",
+        "CMAKE_SHARED_LINKER_FLAGS": "-stdlib=libc++",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "GITSYNC_BUILD_TESTS": "ON",
+        "GITSYNC_WARNINGS_AS_ERRORS": "ON"
+      }
+    },
+    {
+      "name": "debug-msvc",
+      "displayName": "Debug - MSVC",
+      "binaryDir": "${sourceDir}/build/Debug-msvc",
+      "generator": "Visual Studio 17 2022",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_FLAGS": "/std:c++latest /EHsc",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "GITSYNC_BUILD_TESTS": "ON"
       },
       "condition": {
         "type": "equals",
@@ -51,47 +120,112 @@
       }
     },
     {
-      "name": "msvc-release",
-      "displayName": "MSVC Release (Windows)",
+      "name": "release-msvc",
+      "displayName": "Release - MSVC",
+      "binaryDir": "${sourceDir}/build/Release-msvc",
       "generator": "Visual Studio 17 2022",
-      "binaryDir": "${sourceDir}/build/msvc-release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CXX_FLAGS": "/std:c++latest /EHsc",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "GITSYNC_BUILD_TESTS": "OFF",
-        "GITSYNC_WARNINGS_AS_ERRORS": "ON",
-        "CMAKE_CXX_FLAGS": "/std:c++latest /EHsc"
+        "GITSYNC_WARNINGS_AS_ERRORS": "ON"
       },
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
         "rhs": "Windows"
+      }
+    },
+    {
+      "name": "clang18-libcxx",
+      "displayName": "Debug, clang-18 + libc++",
+      "binaryDir": "${sourceDir}/build/Debug-clang18-libcxx",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_COMPILER": "clang++-18",
+        "CMAKE_CXX_FLAGS": "-stdlib=libc++ -std=c++23",
+        "CMAKE_EXE_LINKER_FLAGS": "-stdlib=libc++",
+        "CMAKE_SHARED_LINKER_FLAGS": "-stdlib=libc++",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "GITSYNC_BUILD_TESTS": "ON"
       }
     }
   ],
   "buildPresets": [
     {
-      "name": "clang18-libcxx",
-      "configurePreset": "clang18-libcxx"
-    },
-    {
-      "name": "release",
-      "configurePreset": "release"
-    },
-    {
-      "name": "msvc",
-      "configurePreset": "msvc",
+      "name": "dev",
+      "configurePreset": "dev",
       "configuration": "Debug"
     },
     {
-      "name": "msvc-release",
-      "configurePreset": "msvc-release",
+      "name": "debug",
+      "configurePreset": "debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "release",
+      "configurePreset": "release",
       "configuration": "Release"
+    },
+    {
+      "name": "debug-gcc",
+      "configurePreset": "debug-gcc",
+      "configuration": "Debug"
+    },
+    {
+      "name": "release-gcc",
+      "configurePreset": "release-gcc",
+      "configuration": "Release"
+    },
+    {
+      "name": "debug-clang",
+      "configurePreset": "debug-clang",
+      "configuration": "Debug"
+    },
+    {
+      "name": "release-clang",
+      "configurePreset": "release-clang",
+      "configuration": "Release"
+    },
+    {
+      "name": "debug-clang-libcxx",
+      "configurePreset": "debug-clang-libcxx",
+      "configuration": "Debug"
+    },
+    {
+      "name": "release-clang-libcxx",
+      "configurePreset": "release-clang-libcxx",
+      "configuration": "Release"
+    },
+    {
+      "name": "debug-msvc",
+      "configurePreset": "debug-msvc",
+      "configuration": "Debug"
+    },
+    {
+      "name": "release-msvc",
+      "configurePreset": "release-msvc",
+      "configuration": "Release"
+    },
+    {
+      "name": "clang18-libcxx",
+      "configurePreset": "clang18-libcxx"
     }
   ],
   "testPresets": [
     {
-      "name": "clang18-libcxx",
-      "configurePreset": "clang18-libcxx",
+      "name": "dev",
+      "configurePreset": "dev",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "debug",
+      "configurePreset": "debug",
+      "configuration": "Debug",
       "output": {
         "outputOnFailure": true
       }
@@ -99,22 +233,78 @@
     {
       "name": "release",
       "configurePreset": "release",
+      "configuration": "Release",
       "output": {
         "outputOnFailure": true
       }
     },
     {
-      "name": "msvc",
-      "configurePreset": "msvc",
+      "name": "debug-gcc",
+      "configurePreset": "debug-gcc",
       "configuration": "Debug",
       "output": {
         "outputOnFailure": true
       }
     },
     {
-      "name": "msvc-release",
-      "configurePreset": "msvc-release",
+      "name": "release-gcc",
+      "configurePreset": "release-gcc",
       "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "debug-clang",
+      "configurePreset": "debug-clang",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "release-clang",
+      "configurePreset": "release-clang",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "debug-clang-libcxx",
+      "configurePreset": "debug-clang-libcxx",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "release-clang-libcxx",
+      "configurePreset": "release-clang-libcxx",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "debug-msvc",
+      "configurePreset": "debug-msvc",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "release-msvc",
+      "configurePreset": "release-msvc",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "clang18-libcxx",
+      "configurePreset": "clang18-libcxx",
       "output": {
         "outputOnFailure": true
       }
