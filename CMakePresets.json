@@ -107,7 +107,8 @@
       "binaryDir": "${sourceDir}/build/Release-msvc",
       "generator": "Visual Studio 18 2026",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
+        "CMAKE_BUILD_TYPE": "Release",
+        "GITSYNC_BUILD_TESTS": "OFF"
       },
       "condition": {
         "type": "equals",
