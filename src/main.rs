@@ -105,12 +105,13 @@ fn check_for_update() -> Result<()> {
 
     // Parse version from JSON response
     let latest_version = response
-        .find(r#""tag_name":"#)
+        .find(r#""tag_name""#)
         .and_then(|pos| {
-            let after = &response[pos + r#""tag_name":"#.len()..];
+            let after = &response[pos + r#""tag_name""#.len()..];
             after
                 .trim_start()
-                .strip_prefix('"')
+                .strip_prefix(':')
+                .and_then(|s| s.trim_start().strip_prefix('"'))
                 .and_then(|v| v.split('"').next())
         })
         .unwrap_or(VERSION);
