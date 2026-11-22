@@ -7,29 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-- Complete rewrite from Rust to C++23
-- Build system migrated from Cargo to CMake with presets
-- Dependencies now managed via CMake FetchContent
-- CI/CD workflows updated to use reusable workflows from ai-warevo/.github
+## [0.2.0] - 2026-11-22
 
 ### Added
-- CMake presets for clang18-libcxx, release, and msvc builds
-- Makefile CI contract with ci-fast, ci-deep, ci-coverage, and build-release targets
-- Comprehensive test suite using Catch2 v3
-- Static analysis via clang-tidy
-- Code formatting enforcement via clang-format
-- Coverage badge generation
-- Multi-platform release builds (Linux + Windows)
 
-### Maintained
-- Full configuration compatibility with Rust version
-- Three-layer config merge hierarchy (global → org → repo)
-- Environment variable override (GITSYNC_CONFIG_PATH)
-- JSON configuration format with PascalCase field names
-- SSH known_hosts management
-- Multi-remote synchronization logic
-- CLI argument compatibility (-v, -h, -u, -s)
+- rewrite gitsync from Rust to C++23
+
+### Changed
+
+- fix
+- use aw_add_library instead of aw_core_library
+- replace vendored dependencies with FetchContent
+- update to new workflow structure
+- add .clang-tidy and .editorconfig config files
+- remove unnecessary documentation files
+- add final project completion summary
+- use C++23 instead of Rust
 
 ## [0.1.0] - 2024-XX-XX (Rust)
 
@@ -41,5 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Template-based branch naming
 - CLI with version, help, update, and skip-host options
 
-[Unreleased]: https://github.com/ai-warevo/gitsync/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/ai-warevo/gitsync/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/ai-warevo/gitsync/compare/v1.1.10...v0.2.0
 [0.1.0]: https://github.com/ai-warevo/gitsync/releases/tag/v0.1.0
