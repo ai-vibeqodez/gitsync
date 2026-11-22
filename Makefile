@@ -61,8 +61,15 @@ ci-coverage: ## Generate coverage report and badge
 
 build-release: ## Build optimized release artifacts
 	@echo "==> Building release artifacts..."
+ifeq ($(OS),Windows_NT)
+	cmake --preset msvc-release
+	cmake --build --preset msvc-release
+	mkdir -p dist
+	cp build/msvc-release/Release/gitsync.exe dist/gitsync-windows-x64.exe
+else
 	cmake --preset release -DGITSYNC_WARNINGS_AS_ERRORS=ON
 	cmake --build --preset release
 	mkdir -p dist
 	cp build/release/gitsync dist/gitsync-linux-x64
 	strip dist/gitsync-linux-x64
+endif
