@@ -1,62 +1,35 @@
+# Release — promote changelog and publish GitHub Release
+#
+# Triggered on:
+#   - Tag push (v*)
+#   - Manual workflow_dispatch for dry-run or override version
+#
+# Delegates to reusable-release.yml for version derivation, changelog promotion,
+# and release publication.
+
 name: Release
 
 on:
   push:
-    tags: [ 'v*' ]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version override (X.Y.Z); use auto to derive from CHANGELOG.md'
+        required: false
+        default: auto
+        type: string
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
-  build-artifacts:
-    name: Build Release Artifacts
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/ai-warevo/ci-cpp23:latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Build Linux binary
-        run: make build-release
-
-      - name: Upload Linux artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: gitsync-linux-x64
-          path: dist/gitsync-linux-x64
-
-  build-windows:
-    name: Build Windows Artifact
-    runs-on: windows-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup MSVC
-        uses: ilammy/msvc-dev-cmd@v1
-
-      - name: Configure and build
-        run: |
-          cmake --preset msvc -DGITSYNC_WARNINGS_AS_ERRORS=ON
-          cmake --build --preset msvc --config Release
-
-      - name: Prepare artifacts
-        shell: bash
-        run: |
-          mkdir -p dist
-          cp build/msvc/Release/gitsync.exe dist/gitsync-windows-x64.exe
-
-      - name: Upload Windows artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: gitsync-windows-x64
-          path: dist/gitsync-windows-x64.exe
-
   release:
-    name: Create GitHub Release
-    needs: [ build-artifacts, build-windows ]
     uses: ai-warevo/.github/.github/workflows/reusable-release.yml@main
     with:
-      artifact_names: '["gitsync-linux-x64", "gitsync-windows-x64"]'
-    secrets: inherit
+      version: ${{ inputs.version || 'auto' }}
+    permissions:
+      contents: write
+      actions: write

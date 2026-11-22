@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.23)
 project(gitsync VERSION 0.1.0 LANGUAGES CXX)
 
+# Options
+option(GITSYNC_BUILD_TESTS "Build tests" ON)
+option(GITSYNC_WARNINGS_AS_ERRORS "Treat warnings as errors" OFF)
+
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -36,10 +40,14 @@ target_compile_definitions(gitsync PRIVATE GITSYNC_VERSION="${PROJECT_VERSION}")
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(gitsync_core PRIVATE -Wall -Wextra -Wpedantic -stdlib=libc++)
     target_compile_options(gitsync PRIVATE -Wall -Wextra -Wpedantic -stdlib=libc++)
+    if(GITSYNC_WARNINGS_AS_ERRORS)
+        target_compile_options(gitsync_core PRIVATE -Werror)
+        target_compile_options(gitsync PRIVATE -Werror)
+    endif()
 endif()
 
 # Tests
 enable_testing()
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/CMakeLists.txt)
+if(GITSYNC_BUILD_TESTS AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/CMakeLists.txt)
     add_subdirectory(tests)
 endif()
