@@ -1,12 +1,22 @@
 cmake_minimum_required(VERSION 3.23)
 
 include(FetchContent)
+
+# Force update of aw_cmake_modules from main
+set(FETCHCONTENT_UPDATES_DISCONNECTED OFF)
+
 FetchContent_Declare(
     aw_cmake_modules
     GIT_REPOSITORY https://github.com/ai-vibeqodez/template_cpp
     GIT_TAG main)
+
+message(STATUS "[DEBUG] Fetching aw_cmake_modules from main branch...")
 FetchContent_MakeAvailable(aw_cmake_modules)
+message(STATUS "[DEBUG] aw_cmake_modules source: ${aw_cmake_modules_SOURCE_DIR}")
+message(STATUS "[DEBUG] WindowsSDK.cmake location: ${aw_cmake_modules_SOURCE_DIR}/cmake/Windows/WindowsSDK.cmake")
+
 list(APPEND CMAKE_MODULE_PATH "${aw_cmake_modules_SOURCE_DIR}/cmake")
+message(STATUS "[DEBUG] CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
 include(AWProject)
 aw_project_prepare(NAME gitsync NAMESPACE aw::)
