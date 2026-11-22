@@ -186,9 +186,11 @@ impl<R: IProcessRunner> GitSyncService<R> {
             .unwrap_or(origin_url);
 
         let repo_part = if let Some(pos) = without_scheme.find(':') {
+            // SSH format: git@github.com:owner/repo.git
             &without_scheme[pos + 1..]
         } else {
-            without_scheme
+            // HTTPS format: github.com/owner/repo.git — strip hostname
+            &without_scheme[without_scheme.find('/').unwrap_or(0)..]
         };
 
         let repo_part = repo_part.strip_suffix(".git").unwrap_or(repo_part);
