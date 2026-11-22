@@ -80,7 +80,8 @@ target_compile_definitions(gitsync PRIVATE GITSYNC_VERSION="${PROJECT_VERSION}")
 # Windows code signing (Windows only)
 if(WIN32)
     include(Windows/CodeSign)
-    aw_code_sign_target(gitsync
+    aw_code_sign_target(
+        TARGET gitsync
         CERT_NAME "AI-Warevo Code Signing"
     )
 endif()
