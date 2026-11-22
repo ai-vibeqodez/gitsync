@@ -66,6 +66,32 @@ jobs:
       - name: Setup MSVC environment
         uses: ilammy/msvc-dev-cmd@v1
 
+      - name: Import code signing certificate
+        if: secrets.SIGNING_CERTIFICATE != ''
+        shell: powershell
+        run: |
+          # Decode base64 certificate
+          $certBytes = [System.Convert]::FromBase64String("${{ secrets.SIGNING_CERTIFICATE }}")
+          $certPath = Join-Path $env:TEMP "gitsync_cert.pfx"
+          [System.IO.File]::WriteAllBytes($certPath, $certBytes)
+          
+          # Import to CurrentUser\My store
+          $cert = Import-PfxCertificate -FilePath $certPath -CertStoreLocation "Cert:\CurrentUser\My" -Password (ConvertTo-SecureString "${{ secrets.CERTIFICATE_PASSWORD }}" -AsPlainText -Force)
+          Write-Host "Certificate imported: $($cert.Subject)"
+          
+          # Also import to Trusted Root and Trusted Publishers
+          $rootStore = New-Object System.Security.Cryptography.X509Certificates.X509Store("Root", "CurrentUser")
+          $rootStore.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
+          $rootStore.Add($cert)
+          $rootStore.Close()
+          
+          $pubStore = New-Object System.Security.Cryptography.X509Certificates.X509Store("TrustedPublisher", "CurrentUser")
+          $pubStore.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
+          $pubStore.Add($cert)
+          $pubStore.Close()
+          
+          Remove-Item $certPath
+
       - name: Configure & Build
         uses: ai-warevo/.github/.github/actions/cmake-build@main
         with:
