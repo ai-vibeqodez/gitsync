@@ -1,17 +1,21 @@
 cmake_minimum_required(VERSION 3.23)
-project(gitsync VERSION 0.1.0 LANGUAGES CXX)
 
-# Options
-option(GITSYNC_BUILD_TESTS "Build tests" ON)
-option(GITSYNC_WARNINGS_AS_ERRORS "Treat warnings as errors" OFF)
-
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-# FetchContent for dependencies
 include(FetchContent)
+FetchContent_Declare(
+    aw_cmake_modules
+    GIT_REPOSITORY https://github.com/ai-vibeqodez/template_cpp
+    GIT_TAG eba4d84
+    GIT_SHALLOW ON)
+FetchContent_MakeAvailable(aw_cmake_modules)
+list(APPEND CMAKE_MODULE_PATH "${aw_cmake_modules_SOURCE_DIR}/cmake")
 
-# nlohmann_json
+include(AWProject)
+aw_project_prepare(NAME gitsync NAMESPACE aw::)
+project(${AW_PROJECT_NAME} VERSION ${AW_PROJECT_VERSION} LANGUAGES CXX)
+aw_project_setup(PREFIX GITSYNC BUILD_TESTS)
+aw_check_cxx23_runtime()
+
+# Fetch dependencies first
 FetchContent_Declare(
     nlohmann_json
     GIT_REPOSITORY https://github.com/nlohmann/json.git
@@ -20,7 +24,6 @@ FetchContent_Declare(
     FIND_PACKAGE_ARGS NAMES nlohmann_json
 )
 
-# spdlog
 FetchContent_Declare(
     spdlog
     GIT_REPOSITORY https://github.com/gabime/spdlog.git
@@ -33,39 +36,29 @@ set(FETCHCONTENT_QUIET OFF)
 set(FETCHCONTENT_TIMEOUT 180)
 FetchContent_MakeAvailable(nlohmann_json spdlog)
 
-# Create library
-add_library(gitsync_core STATIC
-    src/gitsync.cpp
-    src/config_settings.cpp
-    src/config_reader.cpp
-    src/process_runner.cpp
-    src/known_hosts_service.cpp
-    src/git_sync_service.cpp)
-
-target_include_directories(gitsync_core PUBLIC 
-    ${CMAKE_CURRENT_SOURCE_DIR}/include)
-
-target_link_libraries(gitsync_core PUBLIC
-    nlohmann_json::nlohmann_json
-    spdlog::spdlog)
+# Create core library with dependencies linked
+include(Library/Target)
+aw_add_library(TARGET gitsync_core TYPE STATIC ALIAS aw::gitsync_core
+    SOURCES
+        src/gitsync.cpp
+        src/config_settings.cpp
+        src/config_reader.cpp
+        src/process_runner.cpp
+        src/known_hosts_service.cpp
+        src/git_sync_service.cpp
+    PUBLIC_INCLUDE_DIRS include
+    PUBLIC_LINKS
+        nlohmann_json::nlohmann_json
+        spdlog::spdlog)
 
 # Create executable
-add_executable(gitsync src/main.cpp)
-target_link_libraries(gitsync PRIVATE gitsync_core)
+aw_add_executable(TARGET gitsync SOURCES src/main.cpp
+    LINK_LIBRARIES aw::gitsync_core)
+
 target_compile_definitions(gitsync PRIVATE GITSYNC_VERSION="${PROJECT_VERSION}")
 
-# Compiler flags
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    target_compile_options(gitsync_core PRIVATE -Wall -Wextra -Wpedantic)
-    target_compile_options(gitsync PRIVATE -Wall -Wextra -Wpedantic)
-    if(GITSYNC_WARNINGS_AS_ERRORS)
-        target_compile_options(gitsync_core PRIVATE -Werror)
-        target_compile_options(gitsync PRIVATE -Werror)
-    endif()
+if(GITSYNC_WARNINGS_AS_ERRORS)
+    aw_configure_compiler(TARGET gitsync STRICT_WARNINGS)
 endif()
 
-# Tests
-enable_testing()
-if(GITSYNC_BUILD_TESTS AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/CMakeLists.txt)
-    add_subdirectory(tests)
-endif()
+aw_setup_tests(OPTION GITSYNC_BUILD_TESTS DIRECTORY tests)

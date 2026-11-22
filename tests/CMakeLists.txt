@@ -1,7 +1,5 @@
-add_executable(gitsync_tests gitsync_tests.cpp)
-
-target_link_libraries(gitsync_tests PRIVATE gitsync_core)
-
-target_compile_options(gitsync_tests PRIVATE -Wall -Wextra -Wpedantic)
-
-add_test(NAME gitsync_unit_tests COMMAND gitsync_tests)
+if(GITSYNC_WARNINGS_AS_ERRORS)
+    aw_test_target(NAME gitsync TESTS_SOURCE gitsync_tests.cpp LINK_TARGET aw::gitsync_core STRICT_WARNINGS)
+else()
+    aw_test_target(NAME gitsync TESTS_SOURCE gitsync_tests.cpp LINK_TARGET aw::gitsync_core)
+endif()
