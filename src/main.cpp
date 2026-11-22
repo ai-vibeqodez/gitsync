@@ -21,6 +21,12 @@
 #include "aw/gitsync/process_runner.hpp"
 #include "aw/gitsync/utils.hpp"
 
+// Platform-specific popen/pclose
+#ifdef _WIN32
+    #define popen _popen
+    #define pclose _pclose
+#endif
+
 // Version is provided at compile time via CMake
 #ifndef GITSYNC_VERSION
 #    define GITSYNC_VERSION "0.0.0"
