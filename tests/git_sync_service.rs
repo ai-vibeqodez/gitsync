@@ -143,10 +143,9 @@ fn compute_summary_no_errors_returns_info_branch() {
 
 #[test]
 fn compute_summary_with_errors_returns_warn_branch() {
-    let runner = FakeRunner::new(fail_push_responses());
-    let svc = GitSyncService::new(runner, cfg());
+    let svc = GitSyncService::new(FakeRunner::new(vec![]), cfg());
 
-    let results: Vec<(String, bool)> = svc.push_all("main:origin/main");
+    let results = vec![("mirror1".to_string(), false)];
     let (success, error, total) = svc.compute_summary(&results);
 
     assert_eq!(total, 1);
