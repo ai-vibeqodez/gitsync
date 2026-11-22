@@ -35,8 +35,5 @@ lcov.info
 # Clang build artifacts (keep .clang-tidy and .clang-format as config files)
 .clangd/
 
-# Third-party dependencies (built locally)
-third_party/
-
 # Rust archive (preserved for reference)
 # .rust-archive/

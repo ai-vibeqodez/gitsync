@@ -8,9 +8,30 @@ option(GITSYNC_WARNINGS_AS_ERRORS "Treat warnings as errors" OFF)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Third-party includes
-set(THIRD_PARTY_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/include)
-set(SPDLOG_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/include)
+# FetchContent for dependencies
+include(FetchContent)
+
+# nlohmann_json
+FetchContent_Declare(
+    nlohmann_json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG v3.11.3
+    GIT_SHALLOW TRUE
+    FIND_PACKAGE_ARGS NAMES nlohmann_json
+)
+
+# spdlog
+FetchContent_Declare(
+    spdlog
+    GIT_REPOSITORY https://github.com/gabime/spdlog.git
+    GIT_TAG v1.14.1
+    GIT_SHALLOW TRUE
+    FIND_PACKAGE_ARGS NAMES spdlog
+)
+
+set(FETCHCONTENT_QUIET OFF)
+set(FETCHCONTENT_TIMEOUT 180)
+FetchContent_MakeAvailable(nlohmann_json spdlog)
 
 # Create library
 add_library(gitsync_core STATIC
@@ -22,24 +43,21 @@ add_library(gitsync_core STATIC
     src/git_sync_service.cpp)
 
 target_include_directories(gitsync_core PUBLIC 
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${THIRD_PARTY_INCLUDE_DIR}
-    ${SPDLOG_INCLUDE_DIR})
+    ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+target_link_libraries(gitsync_core PUBLIC
+    nlohmann_json::nlohmann_json
+    spdlog::spdlog)
 
 # Create executable
 add_executable(gitsync src/main.cpp)
-target_link_libraries(gitsync PRIVATE gitsync_core c++ c++abi pthread)
-target_link_options(gitsync PRIVATE -stdlib=libc++)
-target_include_directories(gitsync PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${THIRD_PARTY_INCLUDE_DIR}
-    ${SPDLOG_INCLUDE_DIR})
+target_link_libraries(gitsync PRIVATE gitsync_core)
 target_compile_definitions(gitsync PRIVATE GITSYNC_VERSION="${PROJECT_VERSION}")
 
 # Compiler flags
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    target_compile_options(gitsync_core PRIVATE -Wall -Wextra -Wpedantic -stdlib=libc++)
-    target_compile_options(gitsync PRIVATE -Wall -Wextra -Wpedantic -stdlib=libc++)
+    target_compile_options(gitsync_core PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(gitsync PRIVATE -Wall -Wextra -Wpedantic)
     if(GITSYNC_WARNINGS_AS_ERRORS)
         target_compile_options(gitsync_core PRIVATE -Werror)
         target_compile_options(gitsync PRIVATE -Werror)
