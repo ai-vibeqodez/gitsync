@@ -77,14 +77,13 @@ aw_add_executable(TARGET gitsync SOURCES src/main.cpp ${GITSYNC_WIN_RESOURCES}
 target_compile_definitions(gitsync PRIVATE GITSYNC_VERSION="${PROJECT_VERSION}")
 
 # Windows code signing (Windows only)
-# Code signing requires certificate installation - skip for now
-# if(WIN32)
-#     include(Windows/CodeSign)
-#     aw_code_sign_target(
-#         TARGET gitsync
-#         CERT_NAME "AI-Warevo Code Signing"
-#     )
-# endif()
+if(WIN32)
+    include(Windows/CodeSign)
+    aw_code_sign_target(
+        TARGET gitsync
+        CERT_NAME "AI-Warevo Code Signing"
+    )
+endif()
 
 if(GITSYNC_WARNINGS_AS_ERRORS)
     aw_configure_compiler(TARGET gitsync STRICT_WARNINGS)
