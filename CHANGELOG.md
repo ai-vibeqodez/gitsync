@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - implement `--update` / `-u` feature to check for and apply updates from GitHub releases
 - utils module with version parsing and comparison functions
 - comprehensive test suite for utils module (7 tests covering version parsing, comparison, and JSON parsing)
+- Windows binary metadata: version info, icon embedding, and code signing support
 
 ## [0.4.0] - 2026-11-22
 
