@@ -11,6 +11,29 @@ using json = nlohmann::json;
 
 namespace aw::gitsync {
 
+namespace {
+// Platform-safe getenv wrapper
+std::optional<std::string> safe_getenv(const char* name) {
+#ifdef _WIN32
+    // Use secure _dupenv_s on Windows
+    char* buffer = nullptr;
+    size_t size = 0;
+    if (_dupenv_s(&buffer, &size, name) == 0 && buffer != nullptr) {
+        std::string result(buffer);
+        free(buffer);
+        return result;
+    }
+    return std::nullopt;
+#else
+    const char* value = std::getenv(name);
+    if (value != nullptr) {
+        return std::string(value);
+    }
+    return std::nullopt;
+#endif
+}
+} // namespace
+
 PartialConfigSettings from_json(const json& j) {
     PartialConfigSettings result;
 
@@ -76,18 +99,19 @@ ConfigReader::read_config_from_path(const std::filesystem::path& config_path) {
 
 std::vector<std::filesystem::path> ConfigReader::collect_config_paths() {
     // Check for GITSYNC_CONFIG_PATH environment variable
-    const char* env_config = std::getenv("GITSYNC_CONFIG_PATH");
-    std::optional<std::string> env_path;
-    if (env_config) {
-        env_path = std::string(env_config);
-    }
+    auto env_path = safe_getenv("GITSYNC_CONFIG_PATH");
 
-    // Get home directory (use HOME env var on Unix)
+    // Get home directory (use HOME env var on Unix, USERPROFILE on Windows)
     std::optional<std::filesystem::path> home_dir;
-    const char* home_env = std::getenv("HOME");
-    if (home_env) {
-        home_dir = std::filesystem::path(home_env);
+#ifdef _WIN32
+    if (auto userprofile = safe_getenv("USERPROFILE")) {
+        home_dir = std::filesystem::path(*userprofile);
     }
+#else
+    if (auto home = safe_getenv("HOME")) {
+        home_dir = std::filesystem::path(*home);
+    }
+#endif
 
     // Get current working directory
     std::optional<std::filesystem::path> current_dir;

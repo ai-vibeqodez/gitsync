@@ -7,6 +7,12 @@
 
 #include <spdlog/spdlog.h>
 
+// Platform-specific popen/pclose
+#ifdef _WIN32
+    #define popen _popen
+    #define pclose _pclose
+#endif
+
 namespace aw::gitsync {
 
 ProcessOutput ProcessRunner::run(const std::string& file_name,

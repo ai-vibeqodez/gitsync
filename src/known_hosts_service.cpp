@@ -10,6 +10,28 @@
 
 namespace aw::gitsync {
 
+namespace {
+// Platform-safe getenv wrapper
+std::optional<std::string> safe_getenv(const char* name) {
+#ifdef _WIN32
+    char* buffer = nullptr;
+    size_t size = 0;
+    if (_dupenv_s(&buffer, &size, name) == 0 && buffer != nullptr) {
+        std::string result(buffer);
+        free(buffer);
+        return result;
+    }
+    return std::nullopt;
+#else
+    const char* value = std::getenv(name);
+    if (value != nullptr) {
+        return std::string(value);
+    }
+    return std::nullopt;
+#endif
+}
+} // namespace
+
 KnownHostsService::KnownHostsService(std::shared_ptr<IProcessRunner> process_runner,
                                      const ConfigSettings& config)
     : process_runner_(process_runner), config_(config) {}
@@ -55,13 +77,20 @@ std::vector<std::string> KnownHostsService::get_hosts() {
 
 std::filesystem::path KnownHostsService::get_known_hosts_path() {
     // Try to get SSH directory
-    const char* home_env = std::getenv("HOME");
     std::filesystem::path ssh_dir;
-    if (home_env) {
-        ssh_dir = std::filesystem::path(home_env) / ".ssh";
+#ifdef _WIN32
+    if (auto userprofile = safe_getenv("USERPROFILE")) {
+        ssh_dir = std::filesystem::path(*userprofile) / ".ssh";
     } else {
         ssh_dir = std::filesystem::path(".") / ".ssh";
     }
+#else
+    if (auto home = safe_getenv("HOME")) {
+        ssh_dir = std::filesystem::path(*home) / ".ssh";
+    } else {
+        ssh_dir = std::filesystem::path(".") / ".ssh";
+    }
+#endif
 
     try {
         std::filesystem::create_directories(ssh_dir);
