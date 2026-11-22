@@ -1,46 +1,46 @@
 # 🔄 GitSync
 
-`GitSync` — небольшая CLI-утилита для синхронизации текущей git-ветки в несколько удалённых репозиториев и подготовки SSH `known_hosts`.
+`GitSync` is a lightweight CLI utility for synchronizing the current git branch across multiple remote repositories and preparing SSH `known_hosts`.
 
 [![CI](https://github.com/my-repositories/gitsync/actions/workflows/ci.yml/badge.svg)](https://github.com/my-repositories/gitsync/actions/workflows/ci.yml)
 [![Coverage](https://raw.githubusercontent.com/my-repositories/gitsync/refs/heads/badges/coverage.svg)](https://my-repositories.github.io/gitsync)
 
-## 🛠️ Как это работает
+## 🛠️ How It Works
 
-При обычном запуске приложение последовательно выполняет следующие шаги:
+When run normally, the application sequentially performs the following steps:
 
-1. Ищет и объединяет (мержит) доступные файлы конфигурации.
-2. Проверяет, что текущая директория находится внутри git-репозитория.
-3. Обновляет `known_hosts` через `ssh-keyscan` (если не указан флаг `--skip-host`).
-4. Получает имя текущей git-ветки и строит целевой `refspec`.
-5. Автоматически добавляет или обновляет remote URL'ы в настройках репозитория.
-6. Пушит текущую ветку во все целевые remote из конфигурации.
-7. Выводит финальный итог по успешным и неудачным операциям.
+1. Searches for and merges (merges) all available configuration files.
+2. Verifies that the current directory is inside a git repository.
+3. Updates `known_hosts` via `ssh-keyscan` (unless the `--skip-host` flag is provided).
+4. Retrieves the current git branch name and builds the target `refspec`.
+5. Automatically adds or updates remote URLs in the repository settings.
+6. Pushes the current branch to all target remotes defined in the configuration.
+7. Outputs a final summary of successful and failed operations.
 
 ---
 
-## 📚 Документация и кейсы
+## 📚 Documentation and Use Cases
 
-Для более глубокого погружения в проект доступны следующие материалы:
+For a deeper dive into the project, the following resources are available:
 
-* 📘 **[Руководство по настройке сценариев (docs/README.md)](docs/README.md)** — подробные примеры структуры файлов, логика слияния параметров и разбор реальных сценариев использования.
-* ⭐️ **[Архитектурный кейс STAR (docs/STAR.md)](docs/STAR.md)** — разбор проекта по методологии **STAR** (Situation, Task, Action, Result). Описание инженерных вызовов, паттерна DTO для мержинга слоев и кроссплатформенных решений на Rust.
+* 📘 **[Configuration Guide (docs/README.md)](docs/README.md)** — detailed examples of file structure, merge logic, and real-world usage scenarios.
+* ⭐️ **[Architecture Case Study (docs/STAR.md)](docs/STAR.md)** — project breakdown using the **STAR** methodology (Situation, Task, Action, Result). Description of engineering challenges, the DTO pattern for merging layers, and cross-platform solutions in Rust.
 
 ---
 
 ## 📦 GitHub Releases
 
-Готовые сборки публикуются автоматически при создании тега вида `v*`.
+Prebuilt binaries are published automatically when a tag of the form `v*` is created.
 
-Доступные платформы:
+Available platforms:
 - Linux `x86_64-unknown-linux-gnu`
 - Windows `x86_64-pc-windows-msvc`
 
 ---
 
-## 📥 Установка
+## 📥 Installation
 
-[Скачай](https://github.com/my-repositories/gitsync/releases/latest) готовый релиз для своей платформы из **GitHub Releases** и запусти `gitsync`.
+[Download](https://github.com/my-repositories/gitsync/releases/latest) the latest release for your platform from **GitHub Releases** and run `gitsync`.
 
 ### Linux
 
@@ -50,7 +50,7 @@
 
 ### Windows
 
-Вы можете закинуть бинарник в встроенную в PATH папку `%LOCALAPPDATA%\Microsoft\WindowsApps`, чтобы утилита была доступна глобально в любом терминале:
+You can place the binary in the built-in `%LOCALAPPDATA%\Microsoft\WindowsApps` folder so the utility is globally available in any terminal:
 
 ```powershell
 gitsync
@@ -58,60 +58,61 @@ gitsync
 
 ---
 
-## ⚙️ Конфигурация
+## ⚙️ Configuration
 
-Приложение поддерживает **многоуровневое слияние настроек**. Вы можете разделять конфигурацию на части: хранить глобальные параметры дома, общие зеркала — в папке организации, а уникальные бэкапы — в корне проекта.
+The application supports **multi-level configuration merging**. You can split configuration into parts: store global settings at home, shared mirrors in the organization folder, and unique backups at the project root.
 
-По умолчанию `gitsync` автоматически собирает и наслаивает файлы по цепочке (локальные заменяют глобальные):
-1. **Глобальный уровень:** `~/.gitsync/config.json`
-2. **Уровень организации (родительский):** `../.gitsync/config.json`
-3. **Уровень проекта (локальный):** `./.gitsync/config.json`
+By default, `gitsync` automatically collects and layers configuration files in the following chain (local overrides global):
 
-> 📘 **Подробное руководство**
-> Детальные примеры структуры файлов, логику слияния параметров и готовые сценарии использования читайте в **[Документации по настройке (docs/README.md)](docs/README.md)**.
+1. **Global level:** `~/.gitsync/config.json`
+2. **Organization level (parent):** `../.gitsync/config.json`
+3. **Project level (local):** `./.gitsync/config.json`
 
-### Переменная среды (Принудительный конфиг)
-Если задана переменная окружения `GITSYNC_CONFIG_PATH`, иерархия папок выше полностью игнорируется, и утилита читает **строго один указанный файл**:
+> 📘 **Detailed Guide**
+> For detailed examples of file structure, parameter merge logic, and ready-made usage scenarios, see **[Configuration Documentation (docs/README.md)](docs/README.md)**.
+
+### Environment Variable (Forced Config)
+If the `GITSYNC_CONFIG_PATH` environment variable is set, the folder hierarchy above is completely ignored, and the utility reads **only the specified file**:
 * **Linux:** `export GITSYNC_CONFIG_PATH=~/my-config.json`
 * **Windows (PowerShell):** `$env:GITSYNC_CONFIG_PATH="C:\my-config.json"`
 
 ---
 
-## 🚀 Запуск
+## 🚀 Usage
 
-Обычный запуск (утилита сама соберет конфигурационную матрешку из папок):
+Normal run (the utility automatically builds the configuration stack from folders):
 
 ```bash
 gitsync
 ```
 
-Запуск с принудительным указанием одного конкретного конфига:
+Run with forced specification of a single config file:
 
 * **Linux:** `GITSYNC_CONFIG_PATH=~/my-config.json gitsync`
 * **Windows (PowerShell):** `$env:GITSYNC_CONFIG_PATH="C:\my-config.json"; gitsync`
 
-Запуск без обновления `known_hosts`:
+Run without updating `known_hosts`:
 
 ```bash
 gitsync --skip-host
 ```
 
-## Флаги
+## Flags
 
-- `--skip-host` — пропустить warmup `known_hosts`.
+- `--skip-host` — skip `known_hosts` warmup.
 
 ---
 
-## ⚠️ Примеры проблем
+## ⚠️ Common Issues
 
-### Конфиг не найден
+### Config Not Found
 
-Если ни один файл конфигурации `.gitsync/config.json` не найден в иерархии путей (и не задана переменная ENV), приложение завершится с ошибкой.
+If no `.gitsync/config.json` file is found in the path hierarchy (and no ENV variable is set), the application will exit with an error.
 
-### Не удалось определить репозиторий
+### Repository Not Detected
 
-Если команда запущена не внутри git-репозитория, приложение завершится с сообщением о том, что текущая директория не является git-репозиторием.
+If the command is run outside a git repository, the application will exit with a message stating that the current directory is not a git repository.
 
-### Проблемы с SSH
+### SSH Issues
 
-Если `ssh-keyscan` недоступен или хост не отвечает, warmup `known_hosts` может завершиться с ошибкой.
+If `ssh-keyscan` is unavailable or the host does not respond, `known_hosts` warmup may fail.

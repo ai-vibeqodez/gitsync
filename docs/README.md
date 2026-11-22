@@ -1,41 +1,41 @@
-# Конфигурация gitsync
+# gitsync Configuration
 
-`gitsync` поддерживает многоуровневую систему конфигурации слияния (мержинга) настроек. Это позволяет гибко настраивать утилиту как глобально для всей машины, так и изолированно для отдельных организаций или конкретных репозиториев.
-
----
-
-## 🛠️ Структура файла конфигурации
-
-Конфиг должен называться `config.json` и находиться внутри папки `.gitsync`.
-Все поля являются **опциональными**. Если поле пропущено на локальном уровне, `gitsync` возьмет его значение с более глобального уровня или подставит дефолтное значение.
-
-### Доступные поля и их значения по умолчанию:
-* `LogLevel` — уровень логирования (по умолчанию: `"info"`).
-* `SourceRemoteName` — имя исходного git-репозитория (по умолчанию: `"origin"`).
-* `RemoteBranchTemplate` — шаблон имени веток для зеркалирования (по умолчанию: `"%owner%/%reponame%/%branchname%"`).
-* `RemoteUrls` — список (JSON-объект) целевых репозиториев для синхронизации (зеркал).
-* `SshKeyTypes` — типы SSH-ключей для сканирования через `ssh-keyscan`. Помогает избежать таймаутов на Windows, если указать конкретный шифр (например, `"ed25519"`). Если не задано — опрашиваются все типы по умолчанию.
+`gitsync` supports a multi-level configuration merge system. This allows flexible configuration of the utility either globally for the entire machine or isolated for individual organizations or specific repositories.
 
 ---
 
-## 🔝 Приоритет и иерархия слоев
+## 🛠️ Configuration File Structure
 
-Если для одного проекта доступны несколько файлов конфигурации, они накладываются друг на друга по цепочке:
+The config file must be named `config.json` and placed inside the `.gitsync` folder.
+All fields are **optional**. If a field is omitted at the local level, `gitsync` will take its value from a more global level or apply a default value.
+
+### Available fields and their defaults:
+* `LogLevel` — logging level (default: `"info"`).
+* `SourceRemoteName` — name of the source git repository (default: `"origin"`).
+* `RemoteBranchTemplate` — branch name template for mirroring (default: `"%owner%/%reponame%/%branchname%"`).
+* `RemoteUrls` — list (JSON object) of target repositories for synchronization (mirrors).
+* `SshKeyTypes` — SSH key types to scan via `ssh-keyscan`. Helps avoid timeouts on Windows if a specific cipher is specified (e.g., `"ed25519"`). If not set, all default types are queried.
+
+---
+
+## 🔝 Priority and Layer Hierarchy
+
+If multiple configuration files are available for a single project, they are layered on top of each other in a chain:
 
 ```text
-[ 1. Глобальный ] -> [ 2. Организация ] -> [ 3. Репозиторий ]
+[ 1. Global ] -> [ 2. Organization ] -> [ 3. Repository ]
 ```
-*Каждый следующий уровень дополняет или перезаписывает настройки предыдущего.*
+*Each subsequent level supplements or overrides the settings of the previous one.*
 
 ---
 
-## 📋 Сценарии использования
+## 📋 Use Cases
 
-### Сценарий 1. Полная матрешка (Домашний + Орг + Репо)
-Самый гибкий сценарий, который используется у вас сейчас для проекта `ai-warevo`.
+### Scenario 1. Full Stack (Home + Organization + Repository)
+The most flexible scenario, currently used for the `ai-warevo` project.
 
-**1. Домашний конфиг (`~/.gitsync/config.json`):**
-Задает общие базовые настройки для всей машины:
+**1. Home config (`~/.gitsync/config.json`):**
+Sets general base settings for the entire machine:
 ```json
 {
   "LogLevel": "info",
@@ -44,8 +44,8 @@
 }
 ```
 
-**2. Конфиг организации (`../.gitsync/config.json`):**
-Лежит в родительской папке (например, `~/Documents/ai-warevo/.gitsync/config.json`). Задает общие зеркала для всех проектов этой команды/организации:
+**2. Organization config (`../.gitsync/config.json`):**
+Located in the parent folder (e.g., `~/Documents/ai-warevo/.gitsync/config.json`). Sets shared mirrors for all projects of this team/organization:
 ```json
 {
   "RemoteUrls": {
@@ -55,8 +55,8 @@
 }
 ```
 
-**3. Конфиг репозитория (`./.gitsync/config.json`):**
-Лежит прямо внутри папки конкретного репозитория. Позволяет точечно переопределить настройки или добавить уникальное зеркало только для этого проекта:
+**3. Repository config (`./.gitsync/config.json`):**
+Located directly inside a specific repository's folder. Allows precise override of settings or adding a unique mirror only for this project:
 ```json
 {
   "LogLevel": "Debug",
@@ -66,10 +66,10 @@
 }
 ```
 
-**Итоговый результат слияния:**
+**Merged result:**
 ```json
 {
-  "LogLevel": "Debug", 
+  "LogLevel": "Debug",
   "SourceRemoteName": "origin",
   "RemoteBranchTemplate": "%owner%/%reponame%/%branchname%",
   "RemoteUrls": {
@@ -82,10 +82,10 @@
 
 ---
 
-### Сценарий 2. Использование только домашнего конфига
-Идеально, если вы работаете один и зеркалируете все свои проекты в одни и те же места (например, всегда бэкапите всё личное на личный GitLab).
+### Scenario 2. Home Config Only
+Ideal if you work alone and mirror all your projects to the same places (e.g., always backing up all personal data to a personal GitLab).
 
-**Домашний конфиг (`~/.gitsync/config.json`):**
+**Home config (`~/.gitsync/config.json`):**
 ```json
 {
   "LogLevel": "info",
@@ -95,24 +95,24 @@
   }
 }
 ```
-*Утилита будет использовать этот единственный файл для любых запусков из любых папок на компьютере.*
+*The utility will use this single file for any runs from any folders on the computer.*
 
 ---
 
-### Сценарий 3. Домашний конфиг + Конфиг организации
-Удобно, если у вас прописана глобальная база дома, а проекты разделены по папкам клиентов/компаний (например, `~/Projects/CompanyA/` и `~/Projects/CompanyB/`).
+### Scenario 3. Home Config + Organization Config
+Convenient if you have a global base configured at home and projects are organized into client/company folders (e.g., `~/Projects/CompanyA/` and `~/Projects/CompanyB/`).
 
-* **Домашний конфиг:** хранит `LogLevel` и `SourceRemoteName`.
-* **Конфиг папки `CompanyA` (`CompanyA/.gitsync/config.json`):** содержит специфичные для этой компании `RemoteUrls`.
+* **Home config:** stores `LogLevel` and `SourceRemoteName`.
+* **`CompanyA` folder config (`CompanyA/.gitsync/config.json`):** contains company-specific `RemoteUrls`.
 
-При запуске из любого подпроекта внутри `CompanyA`, `gitsync` автоматически подтянет домашнюю базу и добавит к ней зеркала этой компании.
+When run from any subproject inside `CompanyA`, `gitsync` automatically pulls the home base and adds this company's mirrors.
 
 ---
 
-### Сценарий 4. Использование только конфига организации
-Если домашнего конфига нет вообще, но проекты лежат в структурированных папках.
+### Scenario 4. Organization Config Only
+If there is no home config, but projects are stored in structured folders.
 
-**Конфиг организации (`../.gitsync/config.json`):**
+**Organization config (`../.gitsync/config.json`):**
 ```json
 {
   "SourceRemoteName": "upstream",
@@ -121,14 +121,14 @@
   }
 }
 ```
-* **Результат:** `LogLevel` и `RemoteBranchTemplate` примут значения по умолчанию (дефолты из кода утилиты), а имя сорса и зеркала подтянутся из родительской папки.
+* **Result:** `LogLevel` and `RemoteBranchTemplate` will take default values (defaults from the utility's code), while the source name and mirrors will be pulled from the parent folder.
 
 ---
 
-### Сценарий 5. Использование только конфига репозитория
-Если вам нужно настроить изолированную синхронизацию для одного конкретного проекта, не засоряя глобальные папки системы.
+### Scenario 5. Repository Config Only
+If you need to configure isolated synchronization for a single specific project without cluttering the system's global folders.
 
-Просто создайте `./.gitsync/config.json` прямо в корне вашего репозитория:
+Simply create `./.gitsync/config.json` directly in your repository root:
 ```json
 {
   "RemoteUrls": {
@@ -136,24 +136,24 @@
   }
 }
 ```
-* **Результат:** Все настройки, кроме `RemoteUrls`, автоматически заполнятся встроенными дефолтами. Никакие внешние файлы (домашние или родительские) учитываться не будут из-за их отсутствия.
+* **Result:** All settings except `RemoteUrls` will be automatically filled with built-in defaults. No external files (home or parent) will be considered due to their absence.
 
 ---
 
-### Сценарий 6. Переопределение через Переменную Среды (ENV)
-Этот сценарий обладает **абсолютным приоритетом** и полностью отключает всю файловую иерархию (матрешку). Используется для автоматизации, CI/CD скриптов или экстренных запусков.
+### Scenario 6. Override via Environment Variable (ENV)
+This scenario has **absolute priority** and completely disables the entire file hierarchy (the "stack"). It is used for automation, CI/CD scripts, or emergency runs.
 
-Вы можете явно указать путь к конкретному файлу конфигурации через переменную `GITSYNC_CONFIG_PATH`.
+You can explicitly specify the path to a specific configuration file via the `GITSYNC_CONFIG_PATH` variable.
 
-#### Как запустить в PowerShell (Windows):
+#### How to run in PowerShell (Windows):
 ```powershell
-\$env:GITSYNC_CONFIG_PATH = "C:\(\custom\path\to\special_config.\)json"
+$env:GITSYNC_CONFIG_PATH = "C:\(custom\path\to\special_config.)json"
 gitsync
 ```
 
-#### Как запустить в Bash (Linux / macOS):
+#### How to run in Bash (Linux / macOS):
 ```bash
 export GITSYNC_CONFIG_PATH="/custom/path/to/special_config.json"
 gitsync
 ```
-*При таком запуске `gitsync` прочитает **только** указанный файл `special_config.json`, применит его настройки поверх встроенных дефолтов и проигнорирует домашние, орг и локальные папки репозитория.*
+*With this launch method, `gitsync` will read **only** the specified `special_config.json` file, apply its settings on top of built-in defaults, and ignore home, organization, and local repository folders.*

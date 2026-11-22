@@ -45,7 +45,7 @@ jobs:
       - name: Preparation for HTML Deploy
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          # В llvm-cov отчеты по дефолту падают в target/llvm-cov/html
+          # llvm-cov reports go to target/llvm-cov/html by default
           touch target/llvm-cov/html/.nojekyll
 
       - name: Deploy Coverage Report to GitHub Pages

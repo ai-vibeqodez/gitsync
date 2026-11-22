@@ -1,33 +1,33 @@
-# Кейс: Разработка кроссплатформенной CLI-утилиты GitSync (Методология STAR)
+# Case Study: Cross-Platform CLI Utility GitSync Development (STAR Methodology)
 
-## 📌 Situation (Ситуация)
-При работе с git-репозиториями в рамках крупных организаций или личных бэкапов возникает регулярная необходимость зеркалировать код (делать push одной и той же ветки) на несколько независимых платформ одновременно (например, в корпоративный GitLab, зеркало на GitVerse и резервную копию на GitHub). 
+## 📌 Situation (Situation)
+When working with git repositories within large organizations or personal backups, there is a recurring need to mirror code (push the same branch) to multiple independent platforms simultaneously (e.g., to a corporate GitLab, a mirror on GitVerse, and a backup on GitHub).
 
-Существующие решения требовали либо сложной ручной настройки множественных remote-адресов для каждого локального репозитория, либо завязывались на тяжелые CI/CD пайплайны, что замедляло разработку. Кроме того, при работе по SSH на новых машинах регулярные падения сборки происходили из-за отсутствия целевых серверов в файле `known_hosts`.
+Existing solutions required either complex manual configuration of multiple remote addresses for each local repository, or relied on heavy CI/CD pipelines that slowed down development. Additionally, when working over SSH on new machines, regular build failures occurred due to target servers being absent from the `known_hosts` file.
 
-## 🎯 Task (Задача)
-Создать легковесную, безопасную и компилируемую кроссплатформенную CLI-утилиту на Rust (`gitsync`), которая:
-1. Автоматизирует прогрев SSH-сессий (`ssh-keyscan`) для целевых хостов.
-2. Автоматически определяет контекст текущего git-репозитория и активной ветки.
-3. Поддерживает гибкую, многоуровневую систему конфигурации (глобальные настройки, настройки для всей организации/клиента и локальные настройки проекта) без дублирования данных.
-4. Гарантированно работает в средах Linux и Windows без необходимости установки внешних зависимостей.
+## 🎯 Task (Task)
+Create a lightweight, secure, and compilable cross-platform CLI utility in Rust (`gitsync`) that:
+1. Automates SSH session warmup (`ssh-keyscan`) for target hosts.
+2. Automatically detects the context of the current git repository and active branch.
+3. Supports a flexible, multi-level configuration system (global settings, organization/client-wide settings, and local project settings) without data duplication.
+4. Works reliably in both Linux and Windows environments without requiring external dependencies.
 
-## 🎬 Action (Действия)
-В ходе проектирования и реализации архитектуры утилиты на Rust были выполнены следующие инженерные шаги:
+## 🎬 Action (Actions)
+The following engineering steps were taken during the design and implementation of the Rust-based utility architecture:
 
-1. **Кроссплатформенный поиск путей:** Интегрирован крейт `dirs` для нативного определения домашних директорий пользователей вне зависимости от ОС (`HOME` на Linux/macOS и `USERPROFILE` на Windows). 
-2. **Многоуровневая архитектура конфигурации:** Спроектирована и реализована каскадная система поиска конфигурационных файлов (`.gitsync/config.json`) по следующей иерархии:
-   * Глобальный профиль пользователя (`~/.gitsync/`)
-   * Профиль родительской директории организации (`../.gitsync/`)
-   * Локальный профиль репозитория (`./.gitsync/`)
-3. **Паттерн DTO для парсинга и слияния слоев:** Чтобы избежать падения парсера при частичном заполнении файлов, логика была разделена на две структуры:
-   * Промежуточная `PartialConfigSettings` (все поля обернуты в `Option<T>` для гибкого Serde-десериализации) с кастомным методом `.merge()`, где локальные настройки дополняют мапы `RemoteUrls` и точечно затирают глобальные строки.
-   * Финальная `ConfigSettings` (строгие типы без `Option`), собираемая методом `.into_final_settings()` с применением безопасных системных дефолтов.
-4. **Тестирование и автоматизация:** 
-   * Написаны модульные и интеграционные тесты с использованием крейта `tempfile` для изоляции файловых операций и проверки корректности наслоения конфигов в иерархических структурах папок.
-   * Настроен CI-пайплайн (GitHub Actions), включающий строгие проверки форматирования кода (`cargo fmt`), статический анализ (`cargo clippy -- -D warnings`) и автоматическую сборку бинарников под Linux (`gnu`) и Windows (`msvc`).
+1. **Cross-platform path resolution:** Integrated the `dirs` crate for native detection of user home directories regardless of OS (`HOME` on Linux/macOS and `USERPROFILE` on Windows).
+2. **Multi-level configuration architecture:** Designed and implemented a cascading configuration file search system (`.gitsync/config.json`) with the following hierarchy:
+   * Global user profile (`~/.gitsync/`)
+   * Parent organization directory profile (`../.gitsync/`)
+   * Local repository profile (`./.gitsync/`)
+3. **DTO pattern for parsing and layer merging:** To prevent parser crashes on partially filled files, the logic was split into two structures:
+   * Intermediate `PartialConfigSettings` (all fields wrapped in `Option<T>` for flexible Serde deserialization) with a custom `.merge()` method, where local settings supplement `RemoteUrls` maps and precisely override global strings.
+   * Final `ConfigSettings` (strict types without `Option`), assembled by the `.into_final_settings()` method with safe system defaults applied.
+4. **Testing and automation:**
+   * Written unit and integration tests using the `tempfile` crate for file operation isolation and verification of correct config layering in hierarchical folder structures.
+   * CI pipeline configured (GitHub Actions) including strict code formatting checks (`cargo fmt`), static analysis (`cargo clippy -- -D warnings`), and automatic binary builds for Linux (`gnu`) and Windows (`msvc`).
 
-## 🏆 Result (Результат)
-1. **Успешный кроссплатформенный запуск:** Утилита работает в одно слово (`gitsync`) как на Linux, так и на Windows (за счет интеграции исполняемого файла в системный слой `WindowsApps`), без ручной модификации переменной `PATH`.
-2. **Избавление от дублирования конфигов:** Сценарий «Матрешки» позволил один раз прописать базовые параметры в корне пользователя, шаблоны зеркал компании — в папке организации, а в репозиториях оставлять только 5 строк кода со ссылками на зеркала.
-3. **Устойчивость к сбоям:** Парсер конфигурации больше не падает при отсутствии полей, а приложение гарантированно собирается и тестируется в автоматическом режиме через CI с нулевым уровнем предупреждений со стороны компилятора.
+## 🏆 Result (Result)
+1. **Successful cross-platform execution:** The utility works with a single command (`gitsync`) on both Linux and Windows (thanks to executable integration into the `WindowsApps` system layer) without manual `PATH` variable modification.
+2. **Elimination of config duplication:** The "Stack" scenario allows writing base parameters once at the user root, company mirror templates in the organization folder, and leaving only 5 lines of code with mirror links in repositories.
+3. **Fault tolerance:** The configuration parser no longer crashes on missing fields, and the application is guaranteed to build and test automatically via CI with zero compiler warnings.

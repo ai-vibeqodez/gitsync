@@ -22,10 +22,10 @@ jobs:
 
       - name: Generate Coverage Badge
         run: |
-          # 1. Получаем отчет
+          # 1. Get the coverage report
           REPORT=$(cargo llvm-cov --summary-only)
-          
-          # 2. Выдираем процент из строки TOTAL
+
+          # 2. Extract the percentage from the TOTAL line
           PERCENTAGE=$(echo "$REPORT" | grep "TOTAL" | grep -oE "[0-9]+\.[0-9]+%" | head -n 1 | sed 's/\..*//')
           
           echo "DEBUG: Extracted percentage: '$PERCENTAGE'"
