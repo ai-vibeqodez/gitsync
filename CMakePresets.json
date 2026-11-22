@@ -1,8 +1,8 @@
 {
-  "version": 6,
+  "version": 3,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 23,
+    "minor": 21,
     "patch": 0
   },
   "configurePresets": [
@@ -28,9 +28,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_C_COMPILER": "gcc",
-        "CMAKE_CXX_COMPILER": "g++",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "GITSYNC_BUILD_TESTS": "ON"
+        "CMAKE_CXX_COMPILER": "g++"
       }
     },
     {
@@ -40,10 +38,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_C_COMPILER": "gcc",
-        "CMAKE_CXX_COMPILER": "g++",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "GITSYNC_BUILD_TESTS": "ON",
-        "GITSYNC_WARNINGS_AS_ERRORS": "ON"
+        "CMAKE_CXX_COMPILER": "g++"
       }
     },
     {
@@ -53,9 +48,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_C_COMPILER": "clang",
-        "CMAKE_CXX_COMPILER": "clang++",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "GITSYNC_BUILD_TESTS": "ON"
+        "CMAKE_CXX_COMPILER": "clang++"
       }
     },
     {
@@ -65,10 +58,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_C_COMPILER": "clang",
-        "CMAKE_CXX_COMPILER": "clang++",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "GITSYNC_BUILD_TESTS": "ON",
-        "GITSYNC_WARNINGS_AS_ERRORS": "ON"
+        "CMAKE_CXX_COMPILER": "clang++"
       }
     },
     {
@@ -81,9 +71,7 @@
         "CMAKE_CXX_COMPILER": "clang++",
         "CMAKE_CXX_FLAGS": "-stdlib=libc++",
         "CMAKE_EXE_LINKER_FLAGS": "-stdlib=libc++",
-        "CMAKE_SHARED_LINKER_FLAGS": "-stdlib=libc++",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "GITSYNC_BUILD_TESTS": "ON"
+        "CMAKE_SHARED_LINKER_FLAGS": "-stdlib=libc++"
       }
     },
     {
@@ -96,22 +84,16 @@
         "CMAKE_CXX_COMPILER": "clang++",
         "CMAKE_CXX_FLAGS": "-stdlib=libc++",
         "CMAKE_EXE_LINKER_FLAGS": "-stdlib=libc++",
-        "CMAKE_SHARED_LINKER_FLAGS": "-stdlib=libc++",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "GITSYNC_BUILD_TESTS": "ON",
-        "GITSYNC_WARNINGS_AS_ERRORS": "ON"
+        "CMAKE_SHARED_LINKER_FLAGS": "-stdlib=libc++"
       }
     },
     {
       "name": "debug-msvc",
       "displayName": "Debug - MSVC",
       "binaryDir": "${sourceDir}/build/Debug-msvc",
-      "generator": "Visual Studio 17 2022",
+      "generator": "Visual Studio 18 2026",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_CXX_FLAGS": "/std:c++latest /EHsc",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "GITSYNC_BUILD_TESTS": "ON"
+        "CMAKE_BUILD_TYPE": "Debug"
       },
       "condition": {
         "type": "equals",
@@ -123,13 +105,9 @@
       "name": "release-msvc",
       "displayName": "Release - MSVC",
       "binaryDir": "${sourceDir}/build/Release-msvc",
-      "generator": "Visual Studio 17 2022",
+      "generator": "Visual Studio 18 2026",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_CXX_FLAGS": "/std:c++latest /EHsc",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "GITSYNC_BUILD_TESTS": "OFF",
-        "GITSYNC_WARNINGS_AS_ERRORS": "ON"
+        "CMAKE_BUILD_TYPE": "Release"
       },
       "condition": {
         "type": "equals",
@@ -144,11 +122,9 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_CXX_COMPILER": "clang++-18",
-        "CMAKE_CXX_FLAGS": "-stdlib=libc++ -std=c++23",
+        "CMAKE_CXX_FLAGS": "-stdlib=libc++",
         "CMAKE_EXE_LINKER_FLAGS": "-stdlib=libc++",
-        "CMAKE_SHARED_LINKER_FLAGS": "-stdlib=libc++",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "GITSYNC_BUILD_TESTS": "ON"
+        "CMAKE_SHARED_LINKER_FLAGS": "-stdlib=libc++"
       }
     }
   ],
