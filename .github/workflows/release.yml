@@ -63,13 +63,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
-      - name: Configure
-        shell: pwsh
-        run: cmake --preset msvc -B build/msvc
+      - name: Setup MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Build
-        shell: pwsh
-        run: cmake --build build/msvc --config Release --target gitsync
+      - name: Configure & Build
+        uses: ai-warevo/.github/.github/actions/cmake-build@main
+        with:
+          source_dir: .
+          build_dir: build/msvc
+          build_type: Release
+          config: Release
 
       - name: Upload artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
