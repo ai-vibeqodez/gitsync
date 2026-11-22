@@ -1,22 +1,12 @@
 cmake_minimum_required(VERSION 3.23)
 
 include(FetchContent)
-
-# Force update of aw_cmake_modules from main
-set(FETCHCONTENT_UPDATES_DISCONNECTED OFF)
-
 FetchContent_Declare(
     aw_cmake_modules
-    GIT_REPOSITORY https://github.com/ai-vibeqodez/template_cpp
+    GIT_REPOSITORY https://github.com/ai-warevo/template_cpp
     GIT_TAG main)
-
-message(STATUS "[DEBUG] Fetching aw_cmake_modules from main branch...")
 FetchContent_MakeAvailable(aw_cmake_modules)
-message(STATUS "[DEBUG] aw_cmake_modules source: ${aw_cmake_modules_SOURCE_DIR}")
-message(STATUS "[DEBUG] WindowsSDK.cmake location: ${aw_cmake_modules_SOURCE_DIR}/cmake/Windows/WindowsSDK.cmake")
-
 list(APPEND CMAKE_MODULE_PATH "${aw_cmake_modules_SOURCE_DIR}/cmake")
-message(STATUS "[DEBUG] CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
 include(AWProject)
 aw_project_prepare(NAME gitsync NAMESPACE aw::)
@@ -87,13 +77,14 @@ aw_add_executable(TARGET gitsync SOURCES src/main.cpp ${GITSYNC_WIN_RESOURCES}
 target_compile_definitions(gitsync PRIVATE GITSYNC_VERSION="${PROJECT_VERSION}")
 
 # Windows code signing (Windows only)
-if(WIN32)
-    include(Windows/CodeSign)
-    aw_code_sign_target(
-        TARGET gitsync
-        CERT_NAME "AI-Warevo Code Signing"
-    )
-endif()
+# Code signing - disabled until template_cpp main is properly pushed
+# if(WIN32)
+#     include(Windows/CodeSign)
+#     aw_code_sign_target(
+#         TARGET gitsync
+#         CERT_NAME "AI-Warevo Code Signing"
+#     )
+# endif()
 
 if(GITSYNC_WARNINGS_AS_ERRORS)
     aw_configure_compiler(TARGET gitsync STRICT_WARNINGS)
