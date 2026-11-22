@@ -11,7 +11,7 @@ struct FakeRunner {
 }
 
 impl FakeRunner {
-    fn new(responses: Vec<Result<&str, &str>>) -> Self {
+    fn new(responses: Vec<Result<&'static str, &'static str>>) -> Self {
         Self {
             calls: RefCell::new(Vec::new()),
             responses: RefCell::new(
@@ -66,7 +66,7 @@ fn cfg() -> ConfigSettings {
 }
 
 /// Helper: minimal response sequence for a successful push (no remote add needed).
-fn success_responses() -> Vec<Result<&str, &str>> {
+fn success_responses() -> Vec<Result<&'static str, &'static str>> {
     vec![
         Ok("true"),                          // git rev-parse --is-inside-work-tree
         Ok("git@github.com:owner/repo.git"), // git remote get-url origin
@@ -77,7 +77,7 @@ fn success_responses() -> Vec<Result<&str, &str>> {
 }
 
 /// Helper: response sequence where push fails.
-fn fail_push_responses() -> Vec<Result<&str, &str>> {
+fn fail_push_responses() -> Vec<Result<&'static str, &'static str>> {
     vec![
         Ok("true"),                          // git rev-parse --is-inside-work-tree
         Ok("git@github.com:owner/repo.git"), // git remote get-url origin
@@ -88,7 +88,7 @@ fn fail_push_responses() -> Vec<Result<&str, &str>> {
 }
 
 /// Helper: HTTPS remote URL for origin.
-fn https_success_responses() -> Vec<Result<&str, &str>> {
+fn https_success_responses() -> Vec<Result<&'static str, &'static str>> {
     vec![
         Ok("true"),                              // git rev-parse --is-inside-work-tree
         Ok("https://github.com/owner/repo.git"), // git remote get-url origin
