@@ -4,7 +4,7 @@ include(FetchContent)
 FetchContent_Declare(
     aw_cmake_modules
     GIT_REPOSITORY https://github.com/ai-warevo/template_cpp
-    GIT_TAG 123e3467cfc0f3b6a9e73a2e1f8c5d4b9e0a1f2d)
+    GIT_TAG main)
 FetchContent_MakeAvailable(aw_cmake_modules)
 list(APPEND CMAKE_MODULE_PATH "${aw_cmake_modules_SOURCE_DIR}/cmake")
 
@@ -77,13 +77,14 @@ aw_add_executable(TARGET gitsync SOURCES src/main.cpp ${GITSYNC_WIN_RESOURCES}
 target_compile_definitions(gitsync PRIVATE GITSYNC_VERSION="${PROJECT_VERSION}")
 
 # Windows code signing (Windows only)
-if(WIN32)
-    include(Windows/CodeSign)
-    aw_code_sign_target(
-        TARGET gitsync
-        CERT_NAME "AI-Warevo Code Signing"
-    )
-endif()
+# Code signing requires certificate installation - skip for now
+# if(WIN32)
+#     include(Windows/CodeSign)
+#     aw_code_sign_target(
+#         TARGET gitsync
+#         CERT_NAME "AI-Warevo Code Signing"
+#     )
+# endif()
 
 if(GITSYNC_WARNINGS_AS_ERRORS)
     aw_configure_compiler(TARGET gitsync STRICT_WARNINGS)
