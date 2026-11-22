@@ -52,11 +52,37 @@ aw_add_library(TARGET gitsync_core TYPE STATIC ALIAS aw::gitsync_core
         nlohmann_json::nlohmann_json
         spdlog::spdlog)
 
+# Windows version resource and icon (Windows only)
+if(WIN32)
+    include(Windows/WinVersion)
+    aw_win_version(GITSYNC_WIN_RESOURCES
+        NAME "GitSync"
+        VERSION_MAJOR ${PROJECT_VERSION_MAJOR}
+        VERSION_MINOR ${PROJECT_VERSION_MINOR}
+        VERSION_PATCH ${PROJECT_VERSION_PATCH}
+        COMPANY_NAME "AI-Warevo"
+        COMPANY_COPYRIGHT "Copyright 2024 AI-Warevo"
+        FILE_DESCRIPTION "Git repository synchronization tool"
+        COMMENTS "GitSync v${PROJECT_VERSION}"
+        ORIGINAL_FILENAME "gitsync.exe"
+        INTERNAL_NAME "gitsync"
+        ICON "${CMAKE_SOURCE_DIR}/product.ico"
+    )
+endif()
+
 # Create executable
-aw_add_executable(TARGET gitsync SOURCES src/main.cpp
+aw_add_executable(TARGET gitsync SOURCES src/main.cpp ${GITSYNC_WIN_RESOURCES}
     LINK_LIBRARIES aw::gitsync_core)
 
 target_compile_definitions(gitsync PRIVATE GITSYNC_VERSION="${PROJECT_VERSION}")
+
+# Windows code signing (Windows only)
+if(WIN32)
+    include(Windows/CodeSign)
+    aw_code_sign_target(gitsync
+        CERT_NAME "AI-Warevo Code Signing"
+    )
+endif()
 
 if(GITSYNC_WARNINGS_AS_ERRORS)
     aw_configure_compiler(TARGET gitsync STRICT_WARNINGS)
