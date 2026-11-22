@@ -4,7 +4,7 @@ include(FetchContent)
 FetchContent_Declare(
     aw_cmake_modules
     GIT_REPOSITORY https://github.com/ai-warevo/template_cpp
-    GIT_TAG c25898a5a42a9b78eb81b7f262cfb7039c0bdd6b)
+    GIT_TAG 123e3467cfc0f3b6a9e73a2e1f8c5d4b9e0a1f2d)
 FetchContent_MakeAvailable(aw_cmake_modules)
 list(APPEND CMAKE_MODULE_PATH "${aw_cmake_modules_SOURCE_DIR}/cmake")
 
