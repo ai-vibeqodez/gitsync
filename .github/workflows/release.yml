@@ -73,7 +73,7 @@ jobs:
           build_dir: build/msvc
           build_type: Release
           config: Release
-          extra_args: -DGITSYNC_BUILD_TESTS=OFF -DGITSYNC_CODE_SIGN=OFF
+          extra_args: -DGITSYNC_BUILD_TESTS=OFF
 
       - name: Upload artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

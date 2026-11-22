@@ -77,9 +77,7 @@ aw_add_executable(TARGET gitsync SOURCES src/main.cpp ${GITSYNC_WIN_RESOURCES}
 target_compile_definitions(gitsync PRIVATE GITSYNC_VERSION="${PROJECT_VERSION}")
 
 # Windows code signing (Windows only)
-option(GITSYNC_CODE_SIGN "Enable Windows code signing" ON)
-
-if(WIN32 AND GITSYNC_CODE_SIGN)
+if(WIN32)
     include(Windows/CodeSign)
     aw_code_sign_target(
         TARGET gitsync
