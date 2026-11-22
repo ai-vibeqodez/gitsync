@@ -67,11 +67,16 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
 
       - name: Import code signing certificate
-        if: ${{ secrets.SIGNING_CERTIFICATE != '' }}
         shell: powershell
         run: |
+          $cert_b64 = "${{ secrets.SIGNING_CERTIFICATE }}"
+          if (-not $cert_b64) {
+            Write-Host "SIGNING_CERTIFICATE not configured; skipping certificate import"
+            exit 0
+          }
+          
           # Decode base64 certificate
-          $certBytes = [System.Convert]::FromBase64String("${{ secrets.SIGNING_CERTIFICATE }}")
+          $certBytes = [System.Convert]::FromBase64String($cert_b64)
           $certPath = Join-Path $env:TEMP "gitsync_cert.pfx"
           [System.IO.File]::WriteAllBytes($certPath, $certBytes)
           
