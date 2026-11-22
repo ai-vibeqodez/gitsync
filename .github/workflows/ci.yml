@@ -2,96 +2,25 @@ name: CI
 
 on:
   push:
-    branches: [ main, master ]
-    # Skip CI on tag pushes to prevent infinite loop with release workflow
-    tags:
-      - '!v*'
+    branches: [ main ]
+    tags-ignore: [ 'v*' ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main ]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  quality-and-tests:
-    runs-on: ubuntu-latest
+  fast:
+    name: PR Fast Checks
+    uses: ai-warevo/.github/.github/workflows/reusable-pr-fast.yml@main
+    with:
+      make_target: ci-fast
 
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Rust (1.95)
-        run: |
-          rustup update stable
-          rustup default 1.95
-          rustup component add rustfmt clippy llvm-tools-preview
-
-      - name: Install cargo-llvm-cov
-        uses: taiki-e/install-action@v2
-        with:
-          tool: cargo-llvm-cov
-
-      - name: Rust Cache
-        uses: Swatinem/rust-cache@v2
-
-      - name: Check Formatting (rustfmt)
-        run: cargo fmt --all -- --check
-
-      - name: Deep Lint (Clippy)
-        run: cargo clippy --all-targets --all-features -- -D warnings
-
-      - name: Run Tests and Generate HTML Report
-        run: cargo llvm-cov --all-features --html
-
-      - name: Preparation for HTML Deploy
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: |
-          # llvm-cov reports go to target/llvm-cov/html by default
-          touch target/llvm-cov/html/.nojekyll
-
-      - name: Deploy Coverage Report to GitHub Pages
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          branch: gh-pages
-          folder: target/llvm-cov/html
-          git-config-name: "github-actions[bot]"
-          git-config-email: "github-actions[bot]@://github.com"
-          single-commit: true
-
-  create-release-tag:
-    needs: quality-and-tests
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true && github.base_ref == 'main')
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Bump version and create tag
-        shell: bash
-        run: |
-          # Read current version from Cargo.toml
-          CURRENT_VERSION=$(grep '^version = ' Cargo.toml | sed 's/version = "\(.*\)"/\1/')
-          MAJOR=$(echo "$CURRENT_VERSION" | cut -d. -f1)
-          MINOR=$(echo "$CURRENT_VERSION" | cut -d. -f2)
-          PATCH=$(echo "$CURRENT_VERSION" | cut -d. -f3)
-          NEW_PATCH=$((PATCH + 1))
-          NEW_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}"
-
-          echo "Bumping version: ${CURRENT_VERSION} -> ${NEW_VERSION}"
-
-          # Update Cargo.toml
-          sed -i "s/version = \"${CURRENT_VERSION}\"/version = \"${NEW_VERSION}\"/" Cargo.toml
-
-          # Configure git
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Commit version bump and push to main
-          git add Cargo.toml
-          git commit -m "chore: bump version to ${NEW_VERSION}" || echo "No version changes to commit"
-          git push origin main || git push --force-with-lease origin main
-
-          # Create and push tag
-          git tag "v${NEW_VERSION}"
-          git push origin "v${NEW_VERSION}" --force
+  coverage:
+    name: Coverage Report
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    uses: ai-warevo/.github/.github/workflows/reusable-coverage-badge.yml@main
+    with:
+      make_target: ci-coverage
+      badge_svg: coverage.svg

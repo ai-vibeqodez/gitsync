@@ -1,118 +1,202 @@
-# 🔄 GitSync
+# gitsync
 
-`GitSync` is a lightweight CLI utility for synchronizing the current git branch across multiple remote repositories and preparing SSH `known_hosts`.
+[![CI](https://github.com/ai-warevo/gitsync/actions/workflows/ci.yml/badge.svg)](https://github.com/ai-warevo/gitsync/actions/workflows/ci.yml)
+[![Coverage](https://raw.githubusercontent.com/ai-warevo/gitsync/badges/coverage.svg)](https://github.com/ai-warevo/gitsync)
 
-[![CI](https://github.com/my-repositories/gitsync/actions/workflows/ci.yml/badge.svg)](https://github.com/my-repositories/gitsync/actions/workflows/ci.yml)
-[![Coverage](https://raw.githubusercontent.com/my-repositories/gitsync/refs/heads/badges/coverage.svg)](https://my-repositories.github.io/gitsync)
+A modern C++23 utility for synchronizing Git repositories across multiple remotes.
 
-## 🛠️ How It Works
+## Features
 
-When run normally, the application sequentially performs the following steps:
+- **Multi-layer configuration**: Global → Organization → Repository config hierarchy
+- **SSH known_hosts management**: Automatic warm-up of target remote hosts
+- **Flexible mirroring**: Template-based branch naming with `%owner%/%reponame%/%branchname%`
+- **Cross-platform**: Linux and Windows support
 
-1. Searches for and merges (merges) all available configuration files.
-2. Verifies that the current directory is inside a git repository.
-3. Updates `known_hosts` via `ssh-keyscan` (unless the `--skip-host` flag is provided).
-4. Retrieves the current git branch name and builds the target `refspec`.
-5. Automatically adds or updates remote URLs in the repository settings.
-6. Pushes the current branch to all target remotes defined in the configuration.
-7. Outputs a final summary of successful and failed operations.
+## Requirements
 
----
+- C++23 compiler (Clang 18+ with libc++ or MSVC on Windows)
+- CMake 3.23+
+- Git
 
-## 📚 Documentation and Use Cases
-
-For a deeper dive into the project, the following resources are available:
-
-* 📘 **[Configuration Guide (docs/README.md)](docs/README.md)** — detailed examples of file structure, merge logic, and real-world usage scenarios.
-* ⭐️ **[Architecture Case Study (docs/STAR.md)](docs/STAR.md)** — project breakdown using the **STAR** methodology (Situation, Task, Action, Result). Description of engineering challenges, the DTO pattern for merging layers, and cross-platform solutions in Rust.
-
----
-
-## 📦 GitHub Releases
-
-Prebuilt binaries are published automatically when a tag of the form `v*` is created.
-
-Available platforms:
-- Linux `x86_64-unknown-linux-gnu`
-- Windows `x86_64-pc-windows-msvc`
-
----
-
-## 📥 Installation
-
-[Download](https://github.com/my-repositories/gitsync/releases/latest) the latest release for your platform from **GitHub Releases** and run `gitsync`.
-
-### Linux
+## Building
 
 ```bash
-./gitsync
+# Configure and build
+cmake --preset clang18-libcxx
+cmake --build --preset clang18-libcxx
+
+# Run tests
+ctest --preset clang18-libcxx --output-on-failure
+
+# Build release binary
+make build-release
+# Output: dist/gitsync-linux-x64
 ```
 
-### Windows
+### Makefile Targets
 
-You can place the binary in the built-in `%LOCALAPPDATA%\Microsoft\WindowsApps` folder so the utility is globally available in any terminal:
+```bash
+make build       # Configure and build with current preset
+make test        # Run all tests
+make lint        # Run clang-format and clang-tidy checks
+make clean       # Remove build artifacts
 
-```powershell
+# CI targets
+make ci-fast     # Fast PR checks: lint + build + tests
+make ci-deep     # Deep checks: sanitizers + integration tests
+make ci-coverage # Generate coverage report and badge
+make build-release # Build optimized release artifacts
+```
+
+## Usage
+
+```bash
+# Run sync (reads config from .gitsync/config.json)
 gitsync
-```
 
----
-
-## ⚙️ Configuration
-
-The application supports **multi-level configuration merging**. You can split configuration into parts: store global settings at home, shared mirrors in the organization folder, and unique backups at the project root.
-
-By default, `gitsync` automatically collects and layers configuration files in the following chain (local overrides global):
-
-1. **Global level:** `~/.gitsync/config.json`
-2. **Organization level (parent):** `../.gitsync/config.json`
-3. **Project level (local):** `./.gitsync/config.json`
-
-> 📘 **Detailed Guide**
-> For detailed examples of file structure, parameter merge logic, and ready-made usage scenarios, see **[Configuration Documentation (docs/README.md)](docs/README.md)**.
-
-### Environment Variable (Forced Config)
-If the `GITSYNC_CONFIG_PATH` environment variable is set, the folder hierarchy above is completely ignored, and the utility reads **only the specified file**:
-* **Linux:** `export GITSYNC_CONFIG_PATH=~/my-config.json`
-* **Windows (PowerShell):** `$env:GITSYNC_CONFIG_PATH="C:\my-config.json"`
-
----
-
-## 🚀 Usage
-
-Normal run (the utility automatically builds the configuration stack from folders):
-
-```bash
-gitsync
-```
-
-Run with forced specification of a single config file:
-
-* **Linux:** `GITSYNC_CONFIG_PATH=~/my-config.json gitsync`
-* **Windows (PowerShell):** `$env:GITSYNC_CONFIG_PATH="C:\my-config.json"; gitsync`
-
-Run without updating `known_hosts`:
-
-```bash
+# Skip SSH known_hosts warm-up
 gitsync --skip-host
+
+# Show version
+gitsync --version
+
+# Show help
+gitsync --help
+
+# Check for updates
+gitsync --update
 ```
 
-## Flags
+## Configuration
 
-- `--skip-host` — skip `known_hosts` warmup.
+See [docs/README.md](docs/README.md) for detailed configuration documentation.
 
----
+### Quick Start
 
-## ⚠️ Common Issues
+Create `~/.gitsync/config.json`:
 
-### Config Not Found
+```json
+{
+  "LogLevel": "info",
+  "SourceRemoteName": "origin",
+  "RemoteBranchTemplate": "%owner%/%reponame%/%branchname%",
+  "RemoteUrls": {
+    "gitlab": "git@gitlab.com:username/mirror.git",
+    "backup": "git@github.com:username/backup.git"
+  }
+}
+```
 
-If no `.gitsync/config.json` file is found in the path hierarchy (and no ENV variable is set), the application will exit with an error.
+### Configuration Hierarchy
 
-### Repository Not Detected
+1. **Global** (`~/.gitsync/config.json`): Base settings for all repositories
+2. **Organization** (`../.gitsync/config.json`): Shared settings for project group
+3. **Repository** (`./.gitsync/config.json`): Project-specific overrides
 
-If the command is run outside a git repository, the application will exit with a message stating that the current directory is not a git repository.
+Each level supplements or overrides the previous one.
 
-### SSH Issues
+### Environment Override
 
-If `ssh-keyscan` is unavailable or the host does not respond, `known_hosts` warmup may fail.
+```bash
+GITSYNC_CONFIG_PATH=/path/to/custom/config.json gitsync
+```
+
+## Configuration Fields
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `LogLevel` | string | `"info"` | Logging verbosity (`trace`, `debug`, `info`, `warn`, `error`) |
+| `SourceRemoteName` | string | `"origin"` | Source git remote name |
+| `RemoteBranchTemplate` | string | `"%owner%/%reponame%/%branchname%"` | Branch naming template |
+| `RemoteUrls` | object | `{}` | Target mirror URLs (name → URL mapping) |
+| `SshKeyTypes` | string | `""` | Comma-separated SSH key types for `ssh-keyscan` (e.g., `"ed25519,rsa"`) |
+
+## Development
+
+### Project Structure
+
+```
+gitsync/
+├── CMakeLists.txt          # CMake configuration
+├── CMakePresets.json       # Build presets (clang18-libcxx, release, msvc)
+├── Makefile                # CI contract targets
+├── include/aw/gitsync/     # Public headers
+│   ├── config_settings.hpp
+│   ├── config_reader.hpp
+│   ├── process_runner.hpp
+│   ├── known_hosts_service.hpp
+│   └── git_sync_service.hpp
+├── src/                    # Implementation
+│   ├── main.cpp
+│   ├── config_settings.cpp
+│   ├── config_reader.cpp
+│   ├── process_runner.cpp
+│   ├── known_hosts_service.cpp
+│   └── git_sync_service.cpp
+├── tests/                  # Catch2 tests
+│   └── gitsync_tests.cpp
+├── .rust-archive/          # Original Rust implementation (reference)
+└── docs/                   # Documentation
+```
+
+### Dependencies
+
+- [nlohmann/json](https://github.com/nlohmann/json) v3.11.3 - JSON parsing
+- [spdlog](https://github.com/gabime/spdlog) v1.14.1 - Logging
+- [Catch2](https://github.com/catchorg/Catch2) v3.7.1 - Testing
+
+All dependencies are fetched via CMake `FetchContent`.
+
+### CI/CD
+
+- **PR checks**: Fast lint, build, and tests via `reusable-pr-fast.yml`
+- **Weekly deep**: Sanitizers and integration tests via `reusable-weekly-deep.yml`
+- **Coverage**: Badge generation on main branch push
+- **Release**: Tag `vX.Y.Z` triggers multi-platform builds (Linux + Windows) and GitHub Release creation
+
+### Releases
+
+Tag a version and push to trigger release workflow:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+Release artifacts:
+- `gitsync-linux-x64` (Linux binary)
+- `gitsync-windows-x64.exe` (Windows binary)
+
+## Migration from Rust
+
+This is a C++23 rewrite of the original Rust implementation. The Rust source is preserved in `.rust-archive/` for reference.
+
+### Key Changes
+
+- **Language**: Rust → C++23
+- **Build system**: Cargo → CMake with presets
+- **Dependencies**: Managed via CMake FetchContent instead of Cargo.toml
+- **Async**: Tokio async/await → synchronous C++ with optional future async support
+- **Configuration**: JSON parsing via nlohmann/json (same PascalCase format)
+- **Logging**: env_logger → spdlog
+
+### Compatibility
+
+Configuration files are fully compatible. The JSON format and three-layer merge logic are preserved.
+
+## License
+
+MIT
+
+## Contributing
+
+1. Fork the repository to your account
+2. Create a feature branch: `git checkout -b feat/my-feature`
+3. Make changes and commit: `git commit -m "feat: add my feature"`
+4. Push to your fork: `git push origin feat/my-feature`
+5. Create a Pull Request to `ai-warevo/gitsync:main`
+
+PRs require:
+- ✅ All tests passing
+- ✅ Lint checks passing (clang-format + clang-tidy)
+- ✅ Code review approval

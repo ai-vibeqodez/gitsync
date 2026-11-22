@@ -1,0 +1,17 @@
+name: Weekly Deep Checks
+
+on:
+  schedule:
+    # Every Monday at 02:00 UTC
+    - cron: '0 2 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deep:
+    name: Deep Verification
+    uses: ai-warevo/.github/.github/workflows/reusable-weekly-deep.yml@main
+    with:
+      make_target: ci-deep
