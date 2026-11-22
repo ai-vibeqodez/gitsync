@@ -1,6 +1,6 @@
 /// Parse the latest version tag from a GitHub release JSON response.
 /// Handles both `"tag_name":"v1.2.3"` and `"tag_name": "v1.2.3"` formats.
-pub fn parse_latest_version(response: &str, fallback: &'static str) -> &'static str {
+pub fn parse_latest_version(response: &str, fallback: &str) -> String {
     response
         .find(r#""tag_name""#)
         .and_then(|pos| {
@@ -12,6 +12,7 @@ pub fn parse_latest_version(response: &str, fallback: &'static str) -> &'static 
                 .and_then(|v| v.split('"').next())
         })
         .unwrap_or(fallback)
+        .to_string()
 }
 
 #[cfg(test)]
