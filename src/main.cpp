@@ -1,11 +1,17 @@
 #include <cstdlib>
+#include <filesystem>
 #include <format>
 #include <iostream>
 #include <memory>
+#include <optional>
 #include <span>
 #include <string>
 #include <string_view>
 #include <vector>
+
+#ifdef _WIN32
+#    include <windows.h>
+#endif
 
 #include <spdlog/spdlog.h>
 
@@ -13,6 +19,7 @@
 #include "aw/gitsync/git_sync_service.hpp"
 #include "aw/gitsync/known_hosts_service.hpp"
 #include "aw/gitsync/process_runner.hpp"
+#include "aw/gitsync/utils.hpp"
 
 // Version is provided at compile time via CMake
 #ifndef GITSYNC_VERSION
@@ -69,6 +76,147 @@ void print_version() {
     std::cout << "gitsync v" << GITSYNC_VERSION << '\n';
 }
 
+/// Find the browser_download_url for the given asset name from a GitHub release JSON.
+std::optional<std::string> find_asset_url(std::string_view json_response, std::string_view asset_name) {
+    // Look for "assets":[
+    constexpr std::string_view assets_key = R"("assets":[)";
+    auto assets_pos = json_response.find(assets_key);
+    if (assets_pos == std::string_view::npos) {
+        return std::nullopt;
+    }
+
+    std::string_view assets_section = json_response.substr(assets_pos + assets_key.size());
+
+    // Build the search pattern: "name":"<asset_name>"
+    std::string search_pattern = std::format(R"("name":"{}")", asset_name);
+    auto name_pos = assets_section.find(search_pattern);
+    if (name_pos == std::string_view::npos) {
+        return std::nullopt;
+    }
+
+    // Find the asset object boundary (look for "}}")
+    std::string_view after_name = assets_section.substr(name_pos);
+    auto end_brace = after_name.find("}}");
+    if (end_brace == std::string_view::npos) {
+        return std::nullopt;
+    }
+
+    std::string_view asset_obj = after_name.substr(0, end_brace + 2);
+
+    // Extract browser_download_url value
+    constexpr std::string_view url_key = R"("browser_download_url":")";
+    auto url_pos = asset_obj.find(url_key);
+    if (url_pos == std::string_view::npos) {
+        return std::nullopt;
+    }
+
+    auto url_start = url_pos + url_key.size();
+    auto url_end = asset_obj.find('"', url_start);
+    if (url_end == std::string_view::npos) {
+        return std::nullopt;
+    }
+
+    return std::string(asset_obj.substr(url_start, url_end - url_start));
+}
+
+void check_for_update() {
+    std::cout << "gitsync v" << GITSYNC_VERSION << '\n';
+    std::cout << "Checking for updates...\n";
+
+    // Determine platform-specific asset name
+    std::string asset_name;
+#ifdef _WIN32
+    asset_name = "gitsync-windows-x64.exe";
+#else
+    asset_name = "gitsync-linux-x64";
+#endif
+
+    // Fetch latest release info from GitHub API
+    const std::string url = "https://api.github.com/repos/ai-warevo/gitsync/releases/latest";
+    const std::string curl_cmd =
+        std::format(R"(curl -s -H "Accept: application/vnd.github+json" "{}")", url);
+
+    FILE* pipe = popen(curl_cmd.c_str(), "r");
+    if (!pipe) {
+        std::cerr << "Failed to run curl\n";
+        std::exit(1);
+    }
+
+    std::string response;
+    char buffer[256];
+    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+        response += buffer;
+    }
+
+    int status = pclose(pipe);
+    if (status != 0) {
+        std::cerr << "Failed to fetch release info\n";
+        std::exit(1);
+    }
+
+    // Parse latest version
+    std::string latest_version = parse_latest_version(response, GITSYNC_VERSION);
+
+    // Strip 'v' prefix for comparison
+    std::string_view current = GITSYNC_VERSION;
+    std::string_view latest = latest_version;
+    if (current.starts_with('v')) {
+        current.remove_prefix(1);
+    }
+    if (latest.starts_with('v')) {
+        latest.remove_prefix(1);
+    }
+
+    // Compare versions
+    int cmp = compare_versions(current, latest);
+    if (cmp >= 0) {
+        std::cout << "Already up to date (v" << GITSYNC_VERSION << ")\n";
+        return;
+    }
+
+    std::cout << std::format("New version available: v{} (current: v{})\n", latest, GITSYNC_VERSION);
+
+    // Find the download URL for this platform
+    auto asset_url = find_asset_url(response, asset_name);
+    if (!asset_url) {
+        std::cerr << std::format("Could not find download URL for asset: {}\n", asset_name);
+        std::exit(1);
+    }
+
+    std::cout << "Downloading update...\n";
+
+    // Get current executable path
+    std::filesystem::path current_exe;
+    try {
+#ifdef _WIN32
+        char buffer[MAX_PATH];
+        GetModuleFileNameA(nullptr, buffer, MAX_PATH);
+        current_exe = buffer;
+#else
+        current_exe = std::filesystem::read_symlink("/proc/self/exe");
+#endif
+    } catch (const std::exception& e) {
+        std::cerr << std::format("Failed to get current executable path: {}\n", e.what());
+        std::exit(1);
+    }
+
+    // Download and replace
+    std::string download_cmd = std::format(R"(curl -L -o "{}" "{}")", current_exe.string(), *asset_url);
+    int download_status = std::system(download_cmd.c_str());
+    if (download_status != 0) {
+        std::cerr << "Download failed\n";
+        std::exit(1);
+    }
+
+#ifndef _WIN32
+    // Make executable on Unix
+    std::string chmod_cmd = std::format("chmod +x \"{}\"", current_exe.string());
+    std::system(chmod_cmd.c_str());
+#endif
+
+    std::cout << std::format("Updated to v{}\n", latest);
+}
+
 void print_help() {
     std::cout << "gitsync v" << GITSYNC_VERSION << "\n\n";
     std::cout << "USAGE:\n";
@@ -116,8 +264,8 @@ int main(int argc, char* argv[]) {
         }
 
         if (update_requested) {
-            std::cerr << "Update feature not yet implemented\n";
-            return 1;
+            check_for_update();
+            return 0;
         }
 
         // Default: run git sync

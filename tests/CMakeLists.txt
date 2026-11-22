@@ -1,5 +1,5 @@
 if(GITSYNC_WARNINGS_AS_ERRORS)
-    aw_test_target(NAME gitsync TESTS_SOURCE gitsync_tests.cpp LINK_TARGET aw::gitsync_core STRICT_WARNINGS)
+    aw_test_target(NAME gitsync SOURCES gitsync_tests.cpp utils_tests.cpp LINK_TARGET aw::gitsync_core STRICT_WARNINGS)
 else()
-    aw_test_target(NAME gitsync TESTS_SOURCE gitsync_tests.cpp LINK_TARGET aw::gitsync_core)
+    aw_test_target(NAME gitsync SOURCES gitsync_tests.cpp utils_tests.cpp LINK_TARGET aw::gitsync_core)
 endif()

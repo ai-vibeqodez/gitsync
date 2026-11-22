@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- implement `--update` / `-u` feature to check for and apply updates from GitHub releases
+- utils module with version parsing and comparison functions
+- comprehensive test suite for utils module (7 tests covering version parsing, comparison, and JSON parsing)
+
 ## [0.4.0] - 2026-11-22
 
 ### Added
@@ -91,11 +97,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Unreleased]: https://github.com/ai-warevo/gitsync/compare/v0.4.0...HEAD
 [0.4.0]: https://github.com/ai-warevo/gitsync/compare/v1.1.10...v0.4.0
-<<<<<<< HEAD
 [0.3.0]: https://github.com/ai-warevo/gitsync/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/ai-warevo/gitsync/compare/v0.1.0...v0.2.0
-=======
-[0.3.0]: https://github.com/ai-warevo/gitsync/compare/v1.1.10...v0.3.0
-[0.2.0]: https://github.com/ai-warevo/gitsync/compare/v1.1.10...v0.2.0
->>>>>>> aa3bc5d74d36123d3b2f75379c7e782a34f3e1ef
 [0.1.0]: https://github.com/ai-warevo/gitsync/releases/tag/v0.1.0
