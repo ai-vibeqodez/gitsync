@@ -236,7 +236,11 @@ void KnownHostsService::save_known_hosts(const std::filesystem::path& known_host
 }
 
 bool KnownHostsService::line_is_valid_known_host_line(const std::string& line) {
-    return !line.empty() && line[0] != '#';
+    // Trim whitespace and check if non-empty and not a comment
+    std::string trimmed = line;
+    trimmed.erase(0, trimmed.find_first_not_of(" \t"));
+    trimmed.erase(trimmed.find_last_not_of(" \t") + 1);
+    return !trimmed.empty() && trimmed[0] != '#';
 }
 
 bool KnownHostsService::line_matches_host(const std::string& line, const std::string& host) {

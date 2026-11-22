@@ -32,10 +32,8 @@ lcov.info
 *~
 .DS_Store
 
-# Clang
-.clang-tidy
+# Clang build artifacts (keep .clang-tidy and .clang-format as config files)
 .clangd/
-compile_commands.json
 
 # Third-party dependencies (built locally)
 third_party/

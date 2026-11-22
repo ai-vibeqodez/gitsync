@@ -1,20 +1,22 @@
 #ifndef AW_GITSYNC_GIT_SYNC_SERVICE_HPP
 #define AW_GITSYNC_GIT_SYNC_SERVICE_HPP
 
-#include <memory>
-#include <string>
-#include <utility>
-#include <vector>
-
 #include "aw/gitsync/config_settings.hpp"
 #include "aw/gitsync/process_runner.hpp"
+
+#include <memory>
+#include <string>
+#include <tuple>
+#include <utility>
+#include <vector>
 
 namespace aw::gitsync {
 
 /// Service for syncing git repositories to multiple remote mirrors
 class GitSyncService {
 public:
-    GitSyncService(std::shared_ptr<IProcessRunner> process_runner, const ConfigSettings& config);
+    GitSyncService(std::shared_ptr<IProcessRunner> process_runner,
+                   const ConfigSettings& config);
 
     /// Main sync loop: ensures remotes, builds refspec, and pushes to all remotes
     void run();
@@ -26,6 +28,12 @@ public:
     /// Compute summary statistics from push results
     std::tuple<uint32_t, uint32_t, uint32_t>
     compute_summary(const std::vector<std::pair<std::string, bool>>& results);
+
+    // Public static helpers for testing
+    static std::string build_remote_branch(const std::string& template_str,
+                                           const std::string& origin_url,
+                                           const std::string& branch_name);
+    static std::string sanitize_branch_name(const std::string& name);
 
 private:
     std::shared_ptr<IProcessRunner> process_runner_;
@@ -51,14 +59,6 @@ private:
 
     /// Log summary of push results
     void log_summary(const std::vector<std::pair<std::string, bool>>& results);
-
-    /// Build remote branch name from template, origin URL, and branch name
-    static std::string build_remote_branch(const std::string& template_str,
-                                           const std::string& origin_url,
-                                           const std::string& branch_name);
-
-    /// Sanitize branch name to only contain [a-zA-Z0-9_-] and forward slashes
-    static std::string sanitize_branch_name(const std::string& name);
 };
 
 } // namespace aw::gitsync
