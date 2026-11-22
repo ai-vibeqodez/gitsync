@@ -59,6 +59,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLI with version, help, update, and skip-host options
 
 [Unreleased]: https://github.com/ai-warevo/gitsync/compare/v0.3.0...HEAD
+<<<<<<< HEAD
 [0.3.0]: https://github.com/ai-warevo/gitsync/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/ai-warevo/gitsync/compare/v0.1.0...v0.2.0
+=======
+[0.3.0]: https://github.com/ai-warevo/gitsync/compare/v1.1.10...v0.3.0
+[0.2.0]: https://github.com/ai-warevo/gitsync/compare/v1.1.10...v0.2.0
+>>>>>>> aa3bc5d74d36123d3b2f75379c7e782a34f3e1ef
 [0.1.0]: https://github.com/ai-warevo/gitsync/releases/tag/v0.1.0
