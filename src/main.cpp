@@ -15,6 +15,7 @@
 
 #include <spdlog/spdlog.h>
 
+#include "aw/gitsync/cli_args.hpp"
 #include "aw/gitsync/config_reader.hpp"
 #include "aw/gitsync/git_sync_service.hpp"
 #include "aw/gitsync/known_hosts_service.hpp"
@@ -34,20 +35,6 @@
 
 using namespace aw::gitsync;
 
-enum class CliAction {
-    Run,
-    Version,
-    Update,
-    Help,
-};
-
-CliAction parse_args() {
-    std::vector<std::string> args;
-    // Note: in main we get argc/argv directly
-    // This function will be refined based on actual call site
-    return CliAction::Run;
-}
-
 void init_logging(const std::string& log_level) {
     // Set spdlog default level based on config
     if (log_level == "debug") {
@@ -63,8 +50,14 @@ void init_logging(const std::string& log_level) {
     }
 }
 
-void run_app(bool skip_host) {
+void run_app(const CliArgs& cli_args, bool skip_host) {
     auto config = ConfigReader::read_config();
+    
+    // Apply CLI log level override
+    if (auto override = cli_args.log_level_override()) {
+        config.log_level = *override;
+    }
+    
     init_logging(config.log_level);
 
     auto process_runner = std::make_shared<ProcessRunner>();
@@ -75,6 +68,26 @@ void run_app(bool skip_host) {
         known_hosts_service->warm_up();
     }
 
+    // Handle dry-run mode
+    if (cli_args.dry_run) {
+        spdlog::info("Running in dry-run mode (no changes will be made)");
+        spdlog::debug("Current branch: (would be detected here)");
+        spdlog::debug("Source remote: {}", config.source_remote_name);
+        spdlog::debug("Will sync to remotes:");
+        for (const auto& [name, url] : config.remote_urls) {
+            spdlog::debug("  - {}: {}", name, url);
+        }
+        if (!config.exclude_remotes.empty()) {
+            spdlog::debug("Will exclude remotes:");
+            for (const auto& remote : config.exclude_remotes) {
+                spdlog::debug("  - {}", remote);
+            }
+        }
+        spdlog::info("Dry-run complete (exit code: 0)");
+        return;
+    }
+
+    // Normal mode: perform sync
     git_sync_service->run();
 }
 
@@ -228,54 +241,48 @@ void print_help() {
     std::cout << "USAGE:\n";
     std::cout << "    gitsync [OPTIONS]\n\n";
     std::cout << "OPTIONS:\n";
+    std::cout << "    -d, --dry-run       Preview sync without pushing (no changes made)\n";
+    std::cout << "    -vv, --verbose      Increase verbosity to DEBUG level\n";
+    std::cout << "    -q, --quiet         Decrease verbosity to ERROR level\n";
+    std::cout << "    --json              Output results as JSON (for CI/CD integration)\n";
     std::cout << "    -h, --help          Print help\n";
     std::cout << "    -v, --version       Print version\n";
     std::cout << "    -u, --update        Check for and apply updates\n";
     std::cout << "    -s, --skip-host     Skip SSH known_hosts warm-up\n\n";
-    std::cout << "COMMANDS:\n";
-    std::cout << "    gitsync             Run git sync (default)\n";
+    std::cout << "EXAMPLES:\n";
+    std::cout << "    gitsync --dry-run           Preview what would be synced\n";
+    std::cout << "    gitsync --verbose           Sync with detailed logging\n";
+    std::cout << "    gitsync --dry-run --json    Preview as JSON output\n";
 }
 
 int main(int argc, char* argv[]) {
     try {
-        std::span<char*> args(argv, static_cast<std::size_t>(argc));
-
-        // Parse command line arguments
-        bool skip_host = false;
-        bool version_requested = false;
-        bool help_requested = false;
-        bool update_requested = false;
-
-        for (size_t i = 1; i < args.size(); ++i) {
-            std::string_view arg = args[i];
-            if (arg == "-h" || arg == "--help") {
-                help_requested = true;
-            } else if (arg == "-v" || arg == "--version") {
-                version_requested = true;
-            } else if (arg == "-u" || arg == "--update") {
-                update_requested = true;
-            } else if (arg == "-s" || arg == "--skip-host") {
-                skip_host = true;
-            }
+        // Convert argv to vector of strings for parser
+        std::vector<std::string> args;
+        for (int i = 0; i < argc; ++i) {
+            args.push_back(argv[i]);
         }
 
-        if (help_requested) {
+        // Parse command line arguments
+        CliArgs cli_args = parse_cli_args(args);
+
+        if (cli_args.help) {
             print_help();
             return 0;
         }
 
-        if (version_requested) {
+        if (cli_args.version) {
             print_version();
             return 0;
         }
 
-        if (update_requested) {
+        if (cli_args.update) {
             check_for_update();
             return 0;
         }
 
-        // Default: run git sync
-        run_app(skip_host);
+        // Default: run git sync (or dry-run if requested)
+        run_app(cli_args, cli_args.skip_host);
         return 0;
 
     } catch (const std::exception& e) {

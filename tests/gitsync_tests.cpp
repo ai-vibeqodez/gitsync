@@ -2,6 +2,7 @@
 #include "aw/gitsync/git_sync_service.hpp"
 #include "aw/gitsync/known_hosts_service.hpp"
 #include "aw/gitsync/config_reader.hpp"
+#include "aw/gitsync/filter_matcher.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 #include <map>
@@ -180,4 +181,45 @@ TEST_CASE("into_final_settings with defaults for new fields", "[config]") {
     REQUIRE(final.exclude_branches == std::vector<std::string>{});
     REQUIRE(final.include_remotes == std::vector<std::string>{});
     REQUIRE(final.exclude_remotes == std::vector<std::string>{"upstream", "base"});
+}
+
+TEST_CASE("FilterMatcher: glob_match exact", "[filter]") {
+    REQUIRE(FilterMatcher::matches_include("main", {"main"}));
+    REQUIRE_FALSE(FilterMatcher::matches_include("main", {"develop"}));
+}
+
+TEST_CASE("FilterMatcher: glob_match with *", "[filter]") {
+    REQUIRE(FilterMatcher::matches_include("release/1.0", {"release/*"}));
+    REQUIRE(FilterMatcher::matches_include("release/2.0", {"release/*"}));
+    REQUIRE_FALSE(FilterMatcher::matches_include("develop/1.0", {"release/*"}));
+}
+
+TEST_CASE("FilterMatcher: glob_match with ?", "[filter]") {
+    REQUIRE(FilterMatcher::matches_include("v1", {"v?"}));
+    REQUIRE(FilterMatcher::matches_include("v2", {"v?"}));
+    REQUIRE_FALSE(FilterMatcher::matches_include("v10", {"v?"}));
+}
+
+TEST_CASE("FilterMatcher: exclude pattern", "[filter]") {
+    REQUIRE(FilterMatcher::matches_exclude("main", {"main"}));
+    REQUIRE_FALSE(FilterMatcher::matches_exclude("develop", {"main"}));
+    REQUIRE(FilterMatcher::matches_exclude("release/1.0", {"release/*"}));
+}
+
+TEST_CASE("FilterMatcher: passes_filters include and exclude", "[filter]") {
+    std::vector<std::string> include{"main", "release/*"};
+    std::vector<std::string> exclude{"release/experimental"};
+    
+    REQUIRE(FilterMatcher::passes_filters("main", include, exclude));
+    REQUIRE(FilterMatcher::passes_filters("release/1.0", include, exclude));
+    REQUIRE_FALSE(FilterMatcher::passes_filters("release/experimental", include, exclude));
+    REQUIRE_FALSE(FilterMatcher::passes_filters("develop", include, exclude));
+}
+
+TEST_CASE("FilterMatcher: empty include matches all", "[filter]") {
+    std::vector<std::string> include;  // Empty = include all
+    std::vector<std::string> exclude{"main"};
+    
+    REQUIRE(FilterMatcher::passes_filters("develop", include, exclude));
+    REQUIRE_FALSE(FilterMatcher::passes_filters("main", include, exclude));
 }
