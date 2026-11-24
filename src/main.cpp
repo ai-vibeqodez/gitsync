@@ -195,9 +195,9 @@ void check_for_update() {
     std::filesystem::path current_exe;
     try {
 #ifdef _WIN32
-        char buffer[MAX_PATH];
-        GetModuleFileNameA(nullptr, buffer, MAX_PATH);
-        current_exe = buffer;
+        char exe_buffer[MAX_PATH];
+        GetModuleFileNameA(nullptr, exe_buffer, MAX_PATH);
+        current_exe = exe_buffer;
 #else
         current_exe = std::filesystem::read_symlink("/proc/self/exe");
 #endif

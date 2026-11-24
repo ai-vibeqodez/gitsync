@@ -47,7 +47,7 @@ ProcessOutput ProcessRunner::run(const std::string& file_name,
 
     std::string stdout_str;
     std::array<char, 128> buffer;
-    while (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
+    while (fgets(buffer.data(), static_cast<int>(buffer.size()), pipe) != nullptr) {
         stdout_str += buffer.data();
     }
 

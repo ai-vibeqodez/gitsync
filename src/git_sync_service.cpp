@@ -46,7 +46,7 @@ std::vector<std::pair<std::string, bool>> GitSyncService::push_all(const std::st
 
 std::tuple<uint32_t, uint32_t, uint32_t>
 GitSyncService::compute_summary(const std::vector<std::pair<std::string, bool>>& results) {
-    uint32_t total = results.size();
+    uint32_t total = static_cast<uint32_t>(results.size());
     uint32_t success = 0;
     for (const auto& [name, ok] : results) {
         if (ok) {
