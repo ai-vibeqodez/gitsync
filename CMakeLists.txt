@@ -54,6 +54,7 @@ aw_add_library(TARGET gitsync_core TYPE STATIC ALIAS aw::gitsync_core
         src/config_parser_yaml.cpp
         src/cli_args.cpp
         src/filter_matcher.cpp
+        src/json_output.cpp
         src/process_runner.cpp
         src/known_hosts_service.cpp
         src/git_sync_service.cpp
