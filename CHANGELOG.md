@@ -7,10 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-
-- rename release binaries: `gitsync-linux-x64` → `gitsync`, `gitsync-windows-x64.exe` → `gitsync.exe`
-
 ### Added
 
 - implement `--update` / `-u` feature to check for and apply updates from GitHub releases
