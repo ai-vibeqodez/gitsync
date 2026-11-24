@@ -4,6 +4,7 @@
 #include <map>
 #include <optional>
 #include <string>
+#include <vector>
 
 namespace aw::gitsync {
 
@@ -14,6 +15,11 @@ struct ConfigSettings {
     std::map<std::string, std::string> remote_urls;
     std::string source_remote_name;
     std::string ssh_key_types;
+    int max_retries;
+    std::vector<std::string> include_branches;
+    std::vector<std::string> exclude_branches;
+    std::vector<std::string> include_remotes;
+    std::vector<std::string> exclude_remotes;
 };
 
 /// Intermediate structure for partial deserialization and merging of config layers
@@ -23,6 +29,11 @@ struct PartialConfigSettings {
     std::optional<std::map<std::string, std::string>> remote_urls;
     std::optional<std::string> source_remote_name;
     std::optional<std::string> ssh_key_types;
+    std::optional<int> max_retries;
+    std::optional<std::vector<std::string>> include_branches;
+    std::optional<std::vector<std::string>> exclude_branches;
+    std::optional<std::vector<std::string>> include_remotes;
+    std::optional<std::vector<std::string>> exclude_remotes;
 
     /// Merges local config settings on top of current settings.
     /// Remote URLs are merged (extended), other fields are replaced if present.

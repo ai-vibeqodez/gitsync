@@ -15,6 +15,21 @@ void PartialConfigSettings::merge(const PartialConfigSettings& local) {
     if (local.ssh_key_types) {
         ssh_key_types = local.ssh_key_types;
     }
+    if (local.max_retries) {
+        max_retries = local.max_retries;
+    }
+    if (local.include_branches) {
+        include_branches = local.include_branches;
+    }
+    if (local.exclude_branches) {
+        exclude_branches = local.exclude_branches;
+    }
+    if (local.include_remotes) {
+        include_remotes = local.include_remotes;
+    }
+    if (local.exclude_remotes) {
+        exclude_remotes = local.exclude_remotes;
+    }
     if (local.remote_urls) {
         if (remote_urls) {
             // Extend existing map with new entries
@@ -35,6 +50,11 @@ ConfigSettings PartialConfigSettings::into_final_settings() const {
         .remote_urls = remote_urls.value_or(std::map<std::string, std::string>{}),
         .source_remote_name = source_remote_name.value_or("origin"),
         .ssh_key_types = ssh_key_types.value_or(""),
+        .max_retries = max_retries.value_or(1),
+        .include_branches = include_branches.value_or(std::vector<std::string>{"*"}),
+        .exclude_branches = exclude_branches.value_or(std::vector<std::string>{}),
+        .include_remotes = include_remotes.value_or(std::vector<std::string>{}),
+        .exclude_remotes = exclude_remotes.value_or(std::vector<std::string>{"upstream", "base"}),
     };
 }
 

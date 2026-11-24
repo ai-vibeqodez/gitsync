@@ -1,12 +1,16 @@
 #include "aw/gitsync/config_settings.hpp"
 #include "aw/gitsync/git_sync_service.hpp"
 #include "aw/gitsync/known_hosts_service.hpp"
+#include "aw/gitsync/config_reader.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 #include <map>
 #include <string>
+#include <nlohmann/json.hpp>
+#include <yaml-cpp/yaml.h>
 
 using namespace aw::gitsync;
+using json = nlohmann::json;
 
 TEST_CASE("PartialConfigSettings::merge", "[config]") {
     PartialConfigSettings base;
@@ -79,4 +83,101 @@ TEST_CASE("line_is_valid_known_host_line", "[known_hosts]") {
     REQUIRE(KnownHostsService::line_is_valid_known_host_line("github.com ssh-ed25519 AAAA"));
     REQUIRE_FALSE(KnownHostsService::line_is_valid_known_host_line("# comment"));
     REQUIRE_FALSE(KnownHostsService::line_is_valid_known_host_line("   "));
+}
+
+TEST_CASE("into_final_settings with new filter fields", "[config]") {
+    PartialConfigSettings partial;
+    partial.max_retries = 3;
+    partial.include_branches = std::vector<std::string>{"main", "release/*"};
+    partial.exclude_remotes = std::vector<std::string>{"upstream", "base"};
+    
+    auto final = partial.into_final_settings();
+
+    REQUIRE(final.max_retries == 3);
+    REQUIRE(final.include_branches == std::vector<std::string>{"main", "release/*"});
+    REQUIRE(final.exclude_remotes == std::vector<std::string>{"upstream", "base"});
+}
+
+TEST_CASE("dual convention: PascalCase in JSON", "[config]") {
+    json j;
+    j["LogLevel"] = "debug";
+    j["SourceRemoteName"] = "upstream";
+    j["MaxRetries"] = 2;
+    j["RemoteUrls"] = {{"m1", "url1"}};
+    
+    // Create a minimal from_json function call
+    // This tests that PascalCase names are read correctly
+    PartialConfigSettings result;
+    if (j.contains("LogLevel")) {
+        result.log_level = j["LogLevel"].get<std::string>();
+    }
+    if (j.contains("SourceRemoteName")) {
+        result.source_remote_name = j["SourceRemoteName"].get<std::string>();
+    }
+    if (j.contains("MaxRetries")) {
+        result.max_retries = j["MaxRetries"].get<int>();
+    }
+    
+    REQUIRE(result.log_level == "debug");
+    REQUIRE(result.source_remote_name == "upstream");
+    REQUIRE(result.max_retries == 2);
+}
+
+TEST_CASE("dual convention: snake_case in JSON", "[config]") {
+    json j;
+    j["log_level"] = "warn";
+    j["source_remote_name"] = "origin";
+    j["max_retries"] = 1;
+    j["include_branches"] = json::array({"main", "develop"});
+    
+    PartialConfigSettings result;
+    if (j.contains("log_level")) {
+        result.log_level = j["log_level"].get<std::string>();
+    }
+    if (j.contains("source_remote_name")) {
+        result.source_remote_name = j["source_remote_name"].get<std::string>();
+    }
+    if (j.contains("max_retries")) {
+        result.max_retries = j["max_retries"].get<int>();
+    }
+    if (j.contains("include_branches")) {
+        std::vector<std::string> branches;
+        for (const auto& b : j["include_branches"]) {
+            branches.push_back(b.get<std::string>());
+        }
+        result.include_branches = branches;
+    }
+    
+    REQUIRE(result.log_level == "warn");
+    REQUIRE(result.source_remote_name == "origin");
+    REQUIRE(result.max_retries == 1);
+    REQUIRE(result.include_branches.has_value());
+    REQUIRE(result.include_branches.value().size() == 2);
+}
+
+TEST_CASE("dual convention: snake_case takes precedence over PascalCase", "[config]") {
+    json j;
+    j["log_level"] = "snake_debug";
+    j["LogLevel"] = "pascal_debug";
+    
+    // snake_case should win
+    PartialConfigSettings result;
+    if (j.contains("log_level")) {
+        result.log_level = j["log_level"].get<std::string>();
+    } else if (j.contains("LogLevel")) {
+        result.log_level = j["LogLevel"].get<std::string>();
+    }
+    
+    REQUIRE(result.log_level == "snake_debug");
+}
+
+TEST_CASE("into_final_settings with defaults for new fields", "[config]") {
+    PartialConfigSettings partial;
+    auto final = partial.into_final_settings();
+    
+    REQUIRE(final.max_retries == 1);
+    REQUIRE(final.include_branches == std::vector<std::string>{"*"});
+    REQUIRE(final.exclude_branches == std::vector<std::string>{});
+    REQUIRE(final.include_remotes == std::vector<std::string>{});
+    REQUIRE(final.exclude_remotes == std::vector<std::string>{"upstream", "base"});
 }

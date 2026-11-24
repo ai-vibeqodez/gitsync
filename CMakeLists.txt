@@ -31,9 +31,17 @@ FetchContent_Declare(
     FIND_PACKAGE_ARGS NAMES spdlog
 )
 
+FetchContent_Declare(
+    yaml_cpp
+    GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+    GIT_TAG 0.8.0
+    GIT_SHALLOW TRUE
+    FIND_PACKAGE_ARGS NAMES yaml-cpp
+)
+
 set(FETCHCONTENT_QUIET OFF)
 set(FETCHCONTENT_TIMEOUT 180)
-FetchContent_MakeAvailable(nlohmann_json spdlog)
+FetchContent_MakeAvailable(nlohmann_json spdlog yaml_cpp)
 
 # Create core library with dependencies linked
 include(Library/Target)
@@ -42,6 +50,8 @@ aw_add_library(TARGET gitsync_core TYPE STATIC ALIAS aw::gitsync_core
         src/gitsync.cpp
         src/config_settings.cpp
         src/config_reader.cpp
+        src/config_parser_json.cpp
+        src/config_parser_yaml.cpp
         src/process_runner.cpp
         src/known_hosts_service.cpp
         src/git_sync_service.cpp
@@ -49,7 +59,8 @@ aw_add_library(TARGET gitsync_core TYPE STATIC ALIAS aw::gitsync_core
     PUBLIC_INCLUDE_DIRS include
     PUBLIC_LINKS
         nlohmann_json::nlohmann_json
-        spdlog::spdlog)
+        spdlog::spdlog
+        yaml-cpp)
 
 # Windows version resource and icon (Windows only)
 if(WIN32)
@@ -77,6 +88,7 @@ aw_add_executable(TARGET gitsync SOURCES src/main.cpp ${GITSYNC_WIN_RESOURCES}
 target_compile_definitions(gitsync PRIVATE GITSYNC_VERSION="${PROJECT_VERSION}")
 
 # Windows code signing (Windows only)
+# Certificate setup: see template_cpp/tools/create_cert.ps1
 if(WIN32)
     include(Windows/CodeSign)
     aw_code_sign_target(
