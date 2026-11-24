@@ -157,13 +157,11 @@ jobs:
         - Linux: `gitsync`
         - Windows: `gitsync.exe`
 
-        **Quick setup:**
+        **Quick setup — Linux:**
         ```bash
-        # Make executable (Linux)
         chmod +x gitsync
         sudo mv gitsync /usr/local/bin/gitsync
 
-        # Create config
         mkdir -p ~/.gitsync
         cat > ~/.gitsync/config.json <<EOF
         {
@@ -176,9 +174,29 @@ jobs:
         }
         EOF
 
-        # Run sync
         gitsync
         ```
+
+        **Quick setup — Windows (PowerShell):**
+        ```powershell
+        Move-Item .\gitsync.exe C:\Windows\gitsync.exe
+
+        New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.gitsync"
+        @"
+        {
+          "LogLevel": "info",
+          "SourceRemoteName": "origin",
+          "RemoteBranchTemplate": "%owner%/%reponame%/%branchname%",
+          "RemoteUrls": {
+            "backup": "git@github.com:username/backup.git"
+          }
+        }
+        "@ | Set-Content "$env:USERPROFILE\.gitsync\config.json"
+
+        gitsync
+        ```
+
+        **Configuration hierarchy:** gitsync merges configs from three levels — **global** (`~/.gitsync/config.json`), **organization** (`.gitsync/config.json` in parent dirs), and **repository** (`.gitsync/config.json` in the working dir). Later levels override earlier ones, so you can set defaults globally and override per-project.
 
         See [README.md](https://github.com/ai-warevo/gitsync#readme) for full documentation.
     permissions:
