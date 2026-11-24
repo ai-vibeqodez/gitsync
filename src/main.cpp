@@ -132,9 +132,9 @@ void check_for_update() {
     // Determine platform-specific asset name
     std::string asset_name;
 #ifdef _WIN32
-    asset_name = "gitsync-windows-x64.exe";
+    asset_name = "gitsync.exe";
 #else
-    asset_name = "gitsync-linux-x64";
+    asset_name = "gitsync";
 #endif
 
     // Fetch latest release info from GitHub API

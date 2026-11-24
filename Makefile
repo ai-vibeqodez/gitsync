@@ -143,11 +143,11 @@ ifeq ($(OS),Windows_NT)
 	cmake --preset release-msvc
 	cmake --build --preset release-msvc
 	mkdir -p dist
-	cp build/Release-msvc/Release/gitsync.exe dist/gitsync-windows-x64.exe
+	cp build/Release-msvc/Release/gitsync.exe dist/gitsync.exe
 else
 	cmake --preset release-gcc -DGITSYNC_WARNINGS_AS_ERRORS=ON
 	cmake --build --preset release-gcc
 	mkdir -p dist
-	cp build/Release-gcc/gitsync dist/gitsync-linux-x64
-	strip dist/gitsync-linux-x64
+	cp build/Release-gcc/gitsync dist/gitsync
+	strip dist/gitsync
 endif

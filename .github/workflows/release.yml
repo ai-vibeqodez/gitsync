@@ -131,12 +131,6 @@ jobs:
           name: gitsync-windows
           path: artifacts
 
-      - name: Rename binaries
-        run: |
-          mv artifacts/gitsync artifacts/gitsync-linux-x64
-          mv artifacts/gitsync.exe artifacts/gitsync-windows-x64.exe
-          ls -lah artifacts/
-
       - name: Upload final artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
@@ -153,21 +147,21 @@ jobs:
       artifact_name: gitsync-release-binaries
       artifact_directory: artifacts
       what-included: |
-        - Multi-platform binaries: Linux (x64) and Windows (x64)
+        - Multi-platform binaries: Linux and Windows
         - Cross-platform Git repository synchronization utility
         - Multi-layer configuration system (global → org → repo)
         - SSH known_hosts automatic management
         - Template-based branch naming
       quick-start: |
         **Download the binary for your platform:**
-        - Linux: `gitsync-linux-x64`
-        - Windows: `gitsync-windows-x64.exe`
+        - Linux: `gitsync`
+        - Windows: `gitsync.exe`
 
         **Quick setup:**
         ```bash
         # Make executable (Linux)
-        chmod +x gitsync-linux-x64
-        sudo mv gitsync-linux-x64 /usr/local/bin/gitsync
+        chmod +x gitsync
+        sudo mv gitsync /usr/local/bin/gitsync
 
         # Create config
         mkdir -p ~/.gitsync

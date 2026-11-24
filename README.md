@@ -30,7 +30,7 @@ ctest --preset clang18-libcxx --output-on-failure
 
 # Build release binary
 make build-release
-# Output: dist/gitsync-linux-x64
+# Output: dist/gitsync
 ```
 
 ### Makefile Targets
@@ -164,8 +164,8 @@ git push origin v1.0.0
 ```
 
 Release artifacts:
-- `gitsync-linux-x64` (Linux binary)
-- `gitsync-windows-x64.exe` (Windows binary)
+- `gitsync` (Linux binary)
+- `gitsync.exe` (Windows binary)
 
 ## Migration from Rust
 
