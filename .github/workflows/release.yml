@@ -67,36 +67,10 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
 
       - name: Import code signing certificate
-        shell: powershell
-        timeout-minutes: 5
-        run: |
-          $cert_b64 = "${{ secrets.SIGNING_CERTIFICATE }}"
-          if (-not $cert_b64) {
-            Write-Host "SIGNING_CERTIFICATE not configured; skipping certificate import"
-            exit 0
-          }
-
-          # Decode base64 certificate
-          $certBytes = [System.Convert]::FromBase64String($cert_b64)
-          $certPath = Join-Path $env:TEMP "gitsync_cert.pfx"
-          [System.IO.File]::WriteAllBytes($certPath, $certBytes)
-
-          # Import to CurrentUser\My store
-          $cert = Import-PfxCertificate -FilePath $certPath -CertStoreLocation "Cert:\CurrentUser\My" -Password (ConvertTo-SecureString "${{ secrets.CERTIFICATE_PASSWORD }}" -AsPlainText -Force)
-          Write-Host "Certificate imported: $($cert.Subject)"
-
-          # Also import to Trusted Root and Trusted Publishers (LocalMachine skips the GUI prompt)
-          $rootStore = New-Object System.Security.Cryptography.X509Certificates.X509Store("Root", "LocalMachine")
-          $rootStore.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
-          $rootStore.Add($cert)
-          $rootStore.Close()
-
-          $pubStore = New-Object System.Security.Cryptography.X509Certificates.X509Store("TrustedPublisher", "LocalMachine")
-          $pubStore.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
-          $pubStore.Add($cert)
-          $pubStore.Close()
-
-          Remove-Item $certPath
+        uses: ai-warevo/.github/.github/actions/windows-code-sign@main
+        with:
+          certificate_secret: ${{ secrets.SIGNING_CERTIFICATE }}
+          certificate_password: ${{ secrets.CERTIFICATE_PASSWORD }}
 
       - name: Configure & Build
         uses: ai-warevo/.github/.github/actions/cmake-build@main
